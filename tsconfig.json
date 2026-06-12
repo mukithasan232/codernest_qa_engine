@@ -20,6 +20,7 @@
     "tests/**/*",
     "config/**/*",
     "types/**/*",
-    "utils/**/*"
+    "utils/**/*",
+    "server/**/*"
   ]
 }
