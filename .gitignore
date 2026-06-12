@@ -1,7 +1,6 @@
 node_modules/
 reports/coverage/
 reports/test-report.html
-.env
 .DS_Store
 .vercel
-.env*
+config.bat
