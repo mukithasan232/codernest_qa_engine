@@ -58,6 +58,33 @@ export const Reporter = {
     normalFindings.forEach(f => {
       md += `| **${f.status}** | ${f.message} | ${f.latency ? f.latency + 'ms' : '-'} |\n`;
     });
+    md += `\n`;
+
+    // Deep Crawler Results
+    const links = (data as any).discoveredLinks as string[] | undefined;
+    const forms = (data as any).discoveredForms as { action: string, method: string }[] | undefined;
+    
+    if ((links && links.length > 0) || (forms && forms.length > 0)) {
+      md += `## 🕷️ Autonomous Deep Scan Results\n\n`;
+      
+      if (links && links.length > 0) {
+        md += `### Discovered Internal Links\n`;
+        links.forEach(link => {
+          md += `- \`${link}\`\n`;
+        });
+        md += `\n`;
+      }
+      
+      if (forms && forms.length > 0) {
+        md += `### Form Detection\n`;
+        md += `| Action | Method |\n`;
+        md += `|---|---|\n`;
+        forms.forEach(form => {
+          md += `| \`${form.action}\` | **${form.method}** |\n`;
+        });
+        md += `\n`;
+      }
+    }
 
     return md;
   },

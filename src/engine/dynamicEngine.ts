@@ -14,12 +14,33 @@ export class DynamicEngine {
   }
 
   public async runScan(): Promise<ReportData> {
+    // 8-second global timeout for Vercel Serverless
+    const timeoutPromise = new Promise<ReportData | null>((resolve) => {
+      setTimeout(() => resolve(null), 8000);
+    });
+
+    const result = await Promise.race([this.performScan(), timeoutPromise]);
+
+    if (!result) {
+      // Timeout reached, manually generate a degraded report
+      return this.generateReport([], 0, 0, 0, true);
+    }
+    return result;
+  }
+
+  private async performScan(): Promise<ReportData> {
     const findings: Finding[] = [];
     let passed = 0;
     let failed = 0;
     let totalChecks = 0;
+    
+    // Auto-discovered lists for the markdown report
+    const discoveredLinks: string[] = [];
+    const discoveredForms: { action: string; method: string }[] = [];
 
-    for (const path of this.pathsToTest) {
+    // Initial pass: Root and common paths
+    for (let i = 0; i < this.pathsToTest.length; i++) {
+      const path = this.pathsToTest[i];
       const url = `${this.targetUrl}${path}`;
       const startTime = Date.now();
       totalChecks++;
@@ -28,11 +49,11 @@ export class DynamicEngine {
         const response = await axios.get(url, {
           headers: this.authToken ? { Authorization: this.authToken } : undefined,
           validateStatus: () => true, // Resolve all
-          timeout: 10000
+          timeout: 5000 // Fast timeout per request
         });
 
         const latency = Date.now() - startTime;
-        const isCommonVulnerablePath = path !== '/' && path !== '/dashboard';
+        const isCommonVulnerablePath = ['/admin', '/api/users', '/dashboard', '/.env'].includes(path);
         
         // Security logic
         if (isCommonVulnerablePath) {
@@ -54,7 +75,7 @@ export class DynamicEngine {
           }
         }
 
-        // Deep Analysis on Root URL
+        // Deep Analysis on Root URL (Auto-Discovery)
         if (path === '/') {
           // Security Headers
           const headers = response.headers;
@@ -69,10 +90,11 @@ export class DynamicEngine {
             }
           });
 
-          // SEO & A11y (Cheerio)
+          // DOM Parsing (Cheerio)
           if (typeof response.data === 'string' && response.data.includes('<html')) {
             const $ = cheerio.load(response.data);
             
+            // 1. SEO & A11y
             totalChecks++;
             if ($('title').length > 0 && $('title').text().trim() !== '') {
               findings.push({ status: 'PASS', message: `Document <title> is present.` });
@@ -82,29 +104,61 @@ export class DynamicEngine {
               failed++;
             }
 
-            totalChecks++;
-            if ($('meta[name="description"]').length > 0) {
-              findings.push({ status: 'PASS', message: `Meta description is present.` });
-              passed++;
-            } else {
-              findings.push({ status: 'WARN', message: `Meta description is missing.` });
-              failed++;
+            // 2. Link Auto-Discovery
+            const links = new Set<string>();
+            $('a[href]').each((_, el) => {
+              const href = $(el).attr('href');
+              if (href && href.startsWith('/') && !href.startsWith('//')) {
+                links.add(href);
+              }
+            });
+            
+            const newLinks = Array.from(links).slice(0, 5); // Limit to 5 max
+            for (const link of newLinks) {
+              if (!this.pathsToTest.includes(link)) {
+                this.pathsToTest.push(link);
+                discoveredLinks.push(link);
+              }
             }
 
-            totalChecks++;
-            if ($('h1').length > 0) {
-              findings.push({ status: 'PASS', message: `Primary <h1> tag is present.` });
-              passed++;
-            } else {
-              findings.push({ status: 'WARN', message: `Primary <h1> tag is missing.` });
-              failed++;
-            }
+            // 3. Form Detection
+            $('form').each((_, el) => {
+              const action = $(el).attr('action') || 'unknown';
+              const method = ($(el).attr('method') || 'GET').toUpperCase();
+              discoveredForms.push({ action, method });
+              
+              if (method === 'GET' && action.startsWith('/')) {
+                if (!this.pathsToTest.includes(action)) this.pathsToTest.push(action);
+              } else if (method === 'POST') {
+                findings.push({ status: 'WARN', message: `Form POST action detected at ${action}. Manual review required.` });
+                totalChecks++;
+                failed++; // We consider manual reviews as slight dings
+              }
+            });
           }
         }
       } catch (error: any) {
         findings.push({ status: 'FAIL', message: `Network error reaching ${path}: ${error.message}` });
         failed++;
       }
+    }
+
+    return this.generateReport(findings, passed, failed, totalChecks, false, discoveredLinks, discoveredForms);
+  }
+
+  private generateReport(
+    findings: Finding[], 
+    passed: number, 
+    failed: number, 
+    totalChecks: number, 
+    timedOut: boolean,
+    discoveredLinks: string[] = [],
+    discoveredForms: { action: string, method: string }[] = []
+  ): ReportData {
+    if (timedOut) {
+      findings.unshift({ status: 'CRITICAL', message: 'Engine exceeded 8-second serverless timeout. Partial results shown.' });
+      failed++;
+      totalChecks++;
     }
 
     let severity: 'Healthy' | 'Degraded' | 'Critical' = 'Healthy';
@@ -130,9 +184,11 @@ export class DynamicEngine {
       markdownResult: ''
     };
 
-    // Generate markdown
-    reportData.markdownResult = Reporter.generateMarkdownReport(reportData);
+    // Include crawler metadata for reporter to use
+    (reportData as any).discoveredLinks = discoveredLinks;
+    (reportData as any).discoveredForms = discoveredForms;
 
+    reportData.markdownResult = Reporter.generateMarkdownReport(reportData);
     return reportData;
   }
 }
