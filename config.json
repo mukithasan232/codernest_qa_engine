@@ -1,0 +1,23 @@
+{
+  "baseUrl": "https://jsonplaceholder.typicode.com",
+  "endpoints": [
+    {
+      "path": "/posts/1",
+      "method": "GET"
+    },
+    {
+      "path": "/posts",
+      "method": "POST",
+      "body": {
+        "title": "foo",
+        "body": "bar",
+        "userId": 1
+      }
+    },
+    {
+      "path": "/invalid-endpoint",
+      "method": "GET"
+    }
+  ],
+  "authToken": "Bearer YOUR_PLACEHOLDER_TOKEN"
+}
