@@ -1,15 +1,15 @@
 /**
- * @fileoverview Smart Crawler — Playwright-based site spider.
+ * @fileoverview Smart Crawler — Cheerio/Axios-based lightweight spider.
  * Discovers all pages, links, and forms within the target domain.
  * Respects a max-page limit and stays on the same origin.
  */
 
-import { chromium, Browser, Page } from 'playwright';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 import { Logger } from './logger';
 import type { DiscoveredPage, DiscoveredForm } from '../types/SmartReport';
 
 export class SmartCrawler {
-  private browser: Browser | null = null;
   private visited  = new Set<string>();
   private queue:     string[] = [];
   private baseOrigin = '';
@@ -36,32 +36,35 @@ export class SmartCrawler {
     const pages: DiscoveredPage[] = [];
 
     Logger.info(`SmartCrawler starting at ${startUrl} (max ${this.maxPages} pages)`);
-    this.browser = await chromium.launch({ headless: true });
 
-    try {
-      while (this.queue.length > 0 && pages.length < this.maxPages) {
-        const url = this.queue.shift()!;
-        if (this.visited.has(url)) continue;
-        this.visited.add(url);
+    while (this.queue.length > 0 && pages.length < this.maxPages) {
+      const url = this.queue.shift()!;
+      if (this.visited.has(url)) continue;
+      this.visited.add(url);
 
-        onProgress?.(`Crawling (${pages.length + 1}/${this.maxPages}): ${url}`);
-        Logger.debug(`Visiting: ${url}`);
+      onProgress?.(`Crawling (${pages.length + 1}/${this.maxPages}): ${url}`);
+      Logger.debug(`Visiting: ${url}`);
 
-        const page = await this.browser.newPage();
-        const start = Date.now();
+      const start = Date.now();
 
-        try {
-          const response = await page.goto(url, {
-            waitUntil: 'domcontentloaded',
-            timeout:   20000,
-          });
+      try {
+        const response = await axios.get(url, {
+          timeout: 5000,
+          validateStatus: () => true // resolve all status codes
+        });
 
-          const statusCode = response?.status() ?? 0;
-          const loadTimeMs = Date.now() - start;
-          const title      = await page.title().catch(() => '');
+        const statusCode = response.status;
+        const loadTimeMs = Date.now() - start;
+        let title = '';
+        let links: string[] = [];
+        let forms: DiscoveredForm[] = [];
+
+        if (typeof response.data === 'string' && response.data.includes('<html')) {
+          const $ = cheerio.load(response.data);
+          title = $('title').text().trim() || '';
 
           // ── Discover same-domain links ──────────────────────────────────
-          const links = await this.discoverLinks(page);
+          links = this.discoverLinks($, url);
           for (const link of links) {
             if (!this.visited.has(link) && !this.queue.includes(link)) {
               this.queue.push(link);
@@ -69,22 +72,17 @@ export class SmartCrawler {
           }
 
           // ── Discover forms ──────────────────────────────────────────────
-          const forms = await this.discoverForms(page);
-
-          pages.push({ url, title, statusCode, links, forms, loadTimeMs });
-        } catch (err) {
-          Logger.warn(`Failed to crawl ${url}: ${(err as Error).message}`);
-          pages.push({
-            url, title: 'Error', statusCode: 0,
-            links: [], forms: [], loadTimeMs: Date.now() - start,
-          });
-        } finally {
-          await page.close().catch(() => null);
+          forms = this.discoverForms($);
         }
+
+        pages.push({ url, title, statusCode, links, forms, loadTimeMs });
+      } catch (err: any) {
+        Logger.warn(`Failed to crawl ${url}: ${err.message}`);
+        pages.push({
+          url, title: 'Error', statusCode: 0,
+          links: [], forms: [], loadTimeMs: Date.now() - start,
+        });
       }
-    } finally {
-      await this.browser.close().catch(() => null);
-      this.browser = null;
     }
 
     Logger.success(`Crawl complete — ${pages.length} pages discovered.`);
@@ -93,46 +91,55 @@ export class SmartCrawler {
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  private async discoverLinks(page: Page): Promise<string[]> {
-    try {
-      const hrefs = await page.evaluate(() =>
-        Array.from(document.querySelectorAll('a[href]'))
-          .map((a) => (a as HTMLAnchorElement).href)
-      );
-      return [...new Set(
-        hrefs
-          .filter((h) => h.startsWith(this.baseOrigin))
-          .map((h) => this.normalise(h))
-      )];
-    } catch {
-      return [];
-    }
+  private discoverLinks($: cheerio.CheerioAPI, currentUrl: string): string[] {
+    const hrefs: string[] = [];
+    $('a[href]').each((_, el) => {
+      let href = $(el).attr('href');
+      if (!href) return;
+      try {
+        if (href.startsWith('/')) {
+          href = this.baseOrigin + href;
+        } else if (!href.startsWith('http')) {
+          href = new URL(href, currentUrl).toString();
+        }
+        hrefs.push(href);
+      } catch {
+        // ignore invalid urls
+      }
+    });
+
+    return [...new Set(
+      hrefs
+        .filter((h) => h.startsWith(this.baseOrigin))
+        .map((h) => this.normalise(h))
+    )];
   }
 
-  private async discoverForms(page: Page): Promise<DiscoveredForm[]> {
-    try {
-      return await page.evaluate(() =>
-        Array.from(document.querySelectorAll('form')).map((form, i) => ({
-          id:     form.id || `form-${i}`,
-          action: form.action || '',
-          method: (form.method || 'get').toUpperCase(),
-          fields: Array.from(form.querySelectorAll('input, select, textarea')).map((el) => {
-            const input = el as HTMLInputElement;
-            const labelEl = input.id
-              ? document.querySelector(`label[for="${input.id}"]`)
-              : input.closest('label');
-            return {
-              name:     input.name || input.id || '',
-              type:     input.type || el.tagName.toLowerCase(),
-              required: input.required,
-              hasLabel: !!labelEl,
-            };
-          }),
-        }))
-      );
-    } catch {
-      return [];
-    }
+  private discoverForms($: cheerio.CheerioAPI): DiscoveredForm[] {
+    const forms: DiscoveredForm[] = [];
+    $('form').each((i, el) => {
+      const id = $(el).attr('id') || `form-${i}`;
+      const action = $(el).attr('action') || '';
+      const method = ($(el).attr('method') || 'get').toUpperCase();
+      
+      const fields: any[] = [];
+      $(el).find('input, select, textare').each((_, inputEl) => {
+        const inputName = $(inputEl).attr('name') || $(inputEl).attr('id') || '';
+        const inputType = $(inputEl).attr('type') || inputEl.tagName.toLowerCase();
+        const required = typeof $(inputEl).attr('required') !== 'undefined';
+        const hasLabel = !!$(inputEl).attr('id') && $(`label[for="${$(inputEl).attr('id')}"]`).length > 0;
+        
+        fields.push({
+          name: inputName,
+          type: inputType,
+          required,
+          hasLabel
+        });
+      });
+
+      forms.push({ id, action, method, fields });
+    });
+    return forms;
   }
 
   /** Strips hash fragments and trailing slashes for deduplication. */
