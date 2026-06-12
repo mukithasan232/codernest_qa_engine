@@ -11,7 +11,7 @@ export interface QAConfig {
   baseUrl: string;
   endpoints: EndpointConfig[];
   secureEndpoints: EndpointConfig[];
-  databaseEndpoint: EndpointConfig;
+  databaseEndpoint?: EndpointConfig;
   authToken: string;
 }
 

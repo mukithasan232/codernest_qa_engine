@@ -3,6 +3,8 @@ import { QAConfig } from '../config/configLoader';
 import { Logger } from '../utils/logger';
 import chalk from 'chalk';
 
+import { Analyzer } from './analyzer';
+
 export interface PingResult {
   url: string;
   method: string;
@@ -29,12 +31,7 @@ export class DiagnosticPinger {
     Logger.info(`Starting Diagnostics Engine against Base URL: ${this.config.baseUrl}\n`);
 
     const results: PingResult[] = [];
-    
-    // Combine endpoints and database endpoint for testing
-    const targets = [...this.config.endpoints];
-    if (this.config.databaseEndpoint) {
-      targets.push(this.config.databaseEndpoint);
-    }
+    const targets = this.config.endpoints;
 
     for (const endpoint of targets) {
       const url = `${this.config.baseUrl}${endpoint.path}`;
@@ -85,16 +82,18 @@ export class DiagnosticPinger {
     }
     
     // Latency coloring
-    let latencyStr = `${latency}ms`.padEnd(8);
-    if (latency > 500) {
-      latencyStr = chalk.red(latencyStr);
-    } else if (latency > 200) {
-      latencyStr = chalk.yellow(latencyStr);
-    } else {
-      latencyStr = chalk.green(latencyStr);
-    }
+    const latencyStatus = Analyzer.evaluateLatency(latency);
+    const latencyColorStr = Analyzer.colorLatencyStatus(latencyStatus);
+    const latencyStr = `${latency}ms`.padEnd(8);
+    const formattedLatency = latencyStr.replace(`${latency}ms`, Analyzer.colorLatencyStatus(latencyStatus as any) ? chalk.reset(latencyStr).replace(`${latency}ms`, Analyzer.colorLatencyStatus(latencyStatus as any).replace(latencyStatus, `${latency}ms`)) : latencyStr);
+    
+    // Easier way:
+    let displayLatency = `${latency}ms`.padEnd(8);
+    if (latencyStatus === 'Excellent') displayLatency = chalk.green(displayLatency);
+    else if (latencyStatus === 'Acceptable') displayLatency = chalk.yellow(displayLatency);
+    else displayLatency = chalk.red(displayLatency);
 
-    const output = `${methodStr} | ${statusStr} | ${latencyStr} | ${url}`;
+    const output = `${methodStr} | ${statusStr} | ${displayLatency} | ${url}`;
 
     if (isNetworkError) {
       console.log(chalk.red('✖ ') + output + chalk.gray(` (${errMsg})`));
