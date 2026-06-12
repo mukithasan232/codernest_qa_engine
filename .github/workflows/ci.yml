@@ -29,7 +29,7 @@ jobs:
 
       - name: Run Test Engine
         env:
-          API_BASE_URL:                    ${{ secrets.API_BASE_URL }}
+          API_BASE_URL:                    https://jsonplaceholder.typicode.com
           API_TOKEN:                       ${{ secrets.API_TOKEN }}
           NODE_ENV:                        ci
           GOOGLE_APPLICATION_CREDENTIALS:  /tmp/service-account.json
