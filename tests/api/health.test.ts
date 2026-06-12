@@ -6,13 +6,14 @@
  * Supertest: requests are made via a shared agent for DRY header management.
  */
 
+import supertest from 'supertest';
 import { CoreUtils } from '@core/CoreUtils';
 import { Logger } from '@core/logger';
 
 // ─── Test Suite ────────────────────────────────────────────────────────────
 
 describe('API Health Check', () => {
-  let agent: ReturnType<typeof CoreUtils.getSupertestAgent>;
+  let agent: ReturnType<typeof supertest.agent>;
 
   /**
    * Create a shared Supertest agent once before all tests in this suite.

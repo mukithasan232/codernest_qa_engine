@@ -5,7 +5,7 @@
  */
 
 import * as dotenv from 'dotenv';
-import supertest, { SuperAgentTest } from 'supertest';
+import supertest from 'supertest';
 import { Logger } from '@core/logger';
 
 dotenv.config();
@@ -102,7 +102,7 @@ export class CoreUtils {
    * expect(res.status).toBe(200);
    * ```
    */
-  static getSupertestAgent(): SuperAgentTest {
+  static getSupertestAgent(): ReturnType<typeof supertest.agent> {
     const baseUrl = this.getEnvVar('API_BASE_URL');
     Logger.debug(`Creating Supertest agent for base URL: ${baseUrl}`);
     return supertest.agent(baseUrl);
