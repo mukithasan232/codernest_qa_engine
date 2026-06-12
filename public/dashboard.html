@@ -2,599 +2,732 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CoderNest QA Core — Dashboard</title>
-  <meta name="description" content="Professional test results dashboard for CoderNest QA Core engine." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <meta name="description" content="Smart QA Engine — paste any URL, get a full professional test report."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:         #07071a;
-      --surface:    rgba(255,255,255,0.04);
-      --border:     rgba(255,255,255,0.08);
-      --purple:     #8b5cf6;
-      --purple-dim: rgba(139,92,246,0.15);
-      --blue:       #3b82f6;
-      --green:      #10b981;
-      --green-dim:  rgba(16,185,129,0.12);
-      --red:        #ef4444;
-      --red-dim:    rgba(239,68,68,0.12);
-      --yellow:     #f59e0b;
-      --yellow-dim: rgba(245,158,11,0.12);
-      --text:       #e2e8f0;
-      --muted:      #64748b;
-      --card-blur:  blur(16px);
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#06061a;--s1:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);
+      --purple:#8b5cf6;--pdim:rgba(139,92,246,.15);
+      --blue:#3b82f6;--green:#10b981;--gdim:rgba(16,185,129,.12);
+      --red:#ef4444;--rdim:rgba(239,68,68,.12);
+      --yellow:#f59e0b;--ydim:rgba(245,158,11,.12);
+      --text:#e2e8f0;--muted:#64748b;
     }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+      background-image:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(139,92,246,.12) 0%,transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%,rgba(59,130,246,.08) 0%,transparent 60%)}
 
-    html { scroll-behavior: smooth; }
+    /* ── LAYOUT ── */
+    .wrap{max-width:1320px;margin:0 auto;padding:0 24px}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(139,92,246,0.15) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(59,130,246,0.1) 0%, transparent 60%);
-    }
+    /* ── HEADER ── */
+    header{position:sticky;top:0;z-index:100;background:rgba(6,6,26,.88);
+      backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 0}
+    .hdr{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:36px;height:36px;border-radius:9px;
+      background:linear-gradient(135deg,var(--purple),var(--blue));
+      display:flex;align-items:center;justify-content:center;font-size:17px}
+    .logo h1{font-size:15px;font-weight:700;letter-spacing:-.3px}
+    .logo p{font-size:11px;color:var(--muted)}
 
-    /* ── Layout ── */
-    .wrapper { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    /* ── TABS ── */
+    .tabs{display:flex;gap:4px;background:rgba(255,255,255,.05);
+      border-radius:8px;padding:3px}
+    .tab{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;
+      cursor:pointer;border:none;background:transparent;color:var(--muted);
+      transition:all .2s;font-family:'Inter',sans-serif}
+    .tab.active{background:rgba(139,92,246,.25);color:#a78bfa}
 
-    /* ── Header ── */
-    header {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(7,7,26,0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 0;
-    }
-    .header-inner {
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .logo {
-      display: flex; align-items: center; gap: 12px;
-    }
-    .logo-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--purple), var(--blue));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-    .logo-text h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
-    .logo-text p  { font-size: 11px; color: var(--muted); }
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
+      border-radius:8px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;
+      cursor:pointer;border:none;transition:all .2s}
+    .btn-primary{background:linear-gradient(135deg,var(--purple),var(--blue));
+      color:#fff;box-shadow:0 0 20px rgba(139,92,246,.3)}
+    .btn-primary:hover:not(:disabled){box-shadow:0 0 30px rgba(139,92,246,.5);transform:translateY(-1px)}
+    .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .spinner{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
+      border-top-color:#fff;animation:spin .7s linear infinite;display:none}
+    .running .spinner{display:block}.running .btn-icon{display:none}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    .header-actions { display: flex; align-items: center; gap: 12px; }
-    .last-run { font-size: 12px; color: var(--muted); }
-    #last-run-time { color: var(--text); }
+    /* ── PANELS ── */
+    .panel{display:none;padding:28px 0 60px}
+    .panel.active{display:block}
 
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 9px 18px; border-radius: 8px; font-size: 13px;
-      font-weight: 600; font-family: 'Inter', sans-serif;
-      cursor: pointer; border: none; transition: all .2s;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--purple), var(--blue));
-      color: #fff;
-      box-shadow: 0 0 20px rgba(139,92,246,0.35);
-    }
-    .btn-primary:hover:not(:disabled) {
-      box-shadow: 0 0 30px rgba(139,92,246,0.55);
-      transform: translateY(-1px);
-    }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    /* ══════════════════════════════════════════
+       SMART QA PANEL
+    ══════════════════════════════════════════ */
 
-    .spinner {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      animation: spin .7s linear infinite;
-      display: none;
-    }
-    .running .spinner { display: block; }
-    .running .btn-icon { display: none; }
+    /* URL Bar */
+    .url-bar{display:flex;gap:10px;margin-bottom:28px;
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:14px;padding:10px 12px}
+    .url-input{flex:1;background:transparent;border:none;outline:none;
+      font-size:14px;color:var(--text);font-family:'JetBrains Mono',monospace}
+    .url-input::placeholder{color:var(--muted)}
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Progress Bar */
+    .progress-wrap{margin-bottom:24px;display:none}
+    .progress-wrap.show{display:block}
+    .progress-label{display:flex;justify-content:space-between;
+      font-size:12px;color:var(--muted);margin-bottom:8px}
+    .progress-track{background:rgba(255,255,255,.07);border-radius:99px;height:6px;overflow:hidden}
+    .progress-fill{background:linear-gradient(90deg,var(--purple),var(--blue));
+      height:100%;border-radius:99px;transition:width .5s ease;width:0%}
 
-    /* ── Main ── */
-    main { padding: 32px 0 60px; }
+    /* Score Badge */
+    .score-hero{text-align:center;padding:32px 0 24px;display:none}
+    .score-hero.show{display:block}
+    .score-ring{width:140px;height:140px;margin:0 auto 16px;position:relative}
+    .score-ring svg{transform:rotate(-90deg)}
+    .score-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center}
+    .score-num{font-size:38px;font-weight:800;line-height:1}
+    .score-lbl{font-size:11px;color:var(--muted);margin-top:3px}
+    .score-grade{font-size:14px;font-weight:700;margin-top:8px;letter-spacing:.05em}
 
-    /* ── Status Banner ── */
-    .status-banner {
-      display: flex; align-items: center; gap: 14px;
-      padding: 16px 20px; border-radius: 14px; margin-bottom: 28px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      backdrop-filter: var(--card-blur);
-      transition: all .4s;
-    }
-    .status-banner.pass  { border-color: rgba(16,185,129,0.4); background: var(--green-dim); }
-    .status-banner.fail  { border-color: rgba(239,68,68,0.4);  background: var(--red-dim); }
-    .status-banner.idle  { border-color: var(--border); }
-    .status-icon { font-size: 26px; line-height: 1; }
-    .status-label { font-size: 18px; font-weight: 700; }
-    .status-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    /* Report Grid */
+    .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+    .report-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px;
+      backdrop-filter:blur(16px);transition:transform .2s}
+    .report-card:hover{transform:translateY(-2px)}
+    .rc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .rc-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .rc-score{font-size:22px;font-weight:800}
+    .rc-bar-track{background:rgba(255,255,255,.07);border-radius:99px;height:4px;margin-top:8px}
+    .rc-bar-fill{height:100%;border-radius:99px;transition:width 1s ease}
+    .rc-items{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+    .rc-item{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:flex-start}
+    .rc-item-icon{flex-shrink:0;margin-top:1px}
 
-    /* ── Stat Cards ── */
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-      margin-bottom: 28px;
-    }
-    @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    /* Screenshots */
+    .screenshots-section{margin-top:24px;display:none}
+    .screenshots-section.show{display:block}
+    .ss-title{font-size:14px;font-weight:700;margin-bottom:14px}
+    .ss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+    .ss-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .ss-tabs{display:flex;border-bottom:1px solid var(--border)}
+    .ss-tab{padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;
+      border:none;background:transparent;color:var(--muted);font-family:'Inter',sans-serif;transition:color .2s}
+    .ss-tab.active{color:var(--purple);border-bottom:2px solid var(--purple)}
+    .ss-url{font-size:10px;color:var(--muted);padding:8px 12px;
+      font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ss-img{width:100%;height:180px;object-fit:cover;object-position:top;display:none}
+    .ss-img.active{display:block}
 
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      backdrop-filter: var(--card-blur);
-      transition: transform .2s, box-shadow .2s;
-    }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
-    .stat-value { font-size: 36px; font-weight: 800; margin: 8px 0 4px; line-height: 1; }
-    .stat-sub   { font-size: 12px; color: var(--muted); }
-    .stat-card.total  .stat-value { color: var(--text); }
-    .stat-card.passed .stat-value { color: var(--green); }
-    .stat-card.failed .stat-value { color: var(--red); }
-    .stat-card.dur    .stat-value { color: var(--purple); font-size: 26px; }
+    /* Issues List */
+    .issues-section{margin-top:24px;display:none}
+    .issues-section.show{display:block}
+    .issue-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+    .issue-item:last-child{border:none}
+    .issue-sev{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;
+      text-transform:uppercase;white-space:nowrap;margin-top:2px}
+    .sev-critical{background:var(--rdim);color:var(--red)}
+    .sev-warning{background:var(--ydim);color:var(--yellow)}
+    .sev-info{background:var(--pdim);color:#a78bfa}
+    .sev-pass{background:var(--gdim);color:var(--green)}
+    .issue-body{flex:1}
+    .issue-title{font-size:13px;font-weight:600}
+    .issue-sub{font-size:11px;color:var(--muted);margin-top:3px;font-family:'JetBrains Mono',monospace}
 
-    /* ── Content Grid ── */
-    .content-grid {
-      display: grid; grid-template-columns: 280px 1fr; gap: 20px;
-      align-items: start;
-    }
-    @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+    /* Empty */
+    .empty{padding:60px 0;text-align:center;color:var(--muted)}
+    .empty-icon{font-size:48px;margin-bottom:12px}
+    .empty-h{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
 
-    /* ── Donut Chart ── */
-    .donut-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-      backdrop-filter: var(--card-blur);
-    }
-    .donut-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 20px; text-transform: uppercase; letter-spacing: .06em; }
-    .donut-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 20px; }
-    .donut-wrap svg { transform: rotate(-90deg); }
-    .donut-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 16; }
-    .donut-pass { fill: none; stroke: var(--green); stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
-    .donut-fail { fill: none; stroke: var(--red); stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
-    .donut-center {
-      position: absolute; inset: 0; display: flex;
-      flex-direction: column; align-items: center; justify-content: center;
-    }
-    .donut-pct { font-size: 28px; font-weight: 800; line-height: 1; }
-    .donut-pct-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    /* ══════════════════════════════════════════
+       UNIT TEST PANEL
+    ══════════════════════════════════════════ */
+    .unit-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .last-run{font-size:12px;color:var(--muted)}
 
-    .donut-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-banner{display:flex;align-items:center;gap:14px;padding:14px 18px;
+      border-radius:12px;margin-bottom:24px;border:1px solid var(--border);background:var(--s1)}
+    .status-banner.pass{border-color:rgba(16,185,129,.4);background:var(--gdim)}
+    .status-banner.fail{border-color:rgba(239,68,68,.4);background:var(--rdim)}
+    .status-icon{font-size:24px}
+    .status-label{font-size:16px;font-weight:700}
+    .status-sub{font-size:12px;color:var(--muted);margin-top:2px}
 
-    /* ── Test Suites ── */
-    .suites-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      backdrop-filter: var(--card-blur);
-      overflow: hidden;
-    }
-    .suites-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .suites-header-title { font-size: 14px; font-weight: 700; }
-    .suite-count { font-size: 12px; color: var(--muted); }
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+    @media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    .stat-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;
+      padding:18px;backdrop-filter:blur(16px)}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .stat-value{font-size:32px;font-weight:800;margin:6px 0 3px;line-height:1}
+    .stat-card.passed .stat-value{color:var(--green)}
+    .stat-card.failed .stat-value{color:var(--red)}
+    .stat-card.dur .stat-value{color:var(--purple);font-size:22px}
+    .stat-sub{font-size:11px;color:var(--muted)}
 
-    .suite {
-      border-bottom: 1px solid var(--border);
-    }
-    .suite:last-child { border-bottom: none; }
+    .content-grid{display:grid;grid-template-columns:260px 1fr;gap:18px}
+    @media(max-width:900px){.content-grid{grid-template-columns:1fr}}
+    .donut-card,.suites-card{background:var(--s1);border:1px solid var(--border);
+      border-radius:14px;backdrop-filter:blur(16px)}
+    .donut-card{padding:22px;text-align:center}
+    .donut-title{font-size:12px;font-weight:600;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+    .donut-wrap{position:relative;width:150px;height:150px;margin:0 auto 16px}
+    .donut-wrap svg{transform:rotate(-90deg)}
+    .donut-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:15}
+    .donut-pass{fill:none;stroke:var(--green);stroke-width:15;stroke-linecap:round;transition:stroke-dasharray 1s ease}
+    .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .donut-pct{font-size:26px;font-weight:800;line-height:1}
+    .donut-pct-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+    .donut-legend{display:flex;flex-direction:column;gap:7px}
+    .legend-item{display:flex;align-items:center;gap:7px;font-size:12px}
+    .legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
-    .suite-header {
-      padding: 14px 20px;
-      display: flex; align-items: center; gap: 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: background .15s;
-    }
-    .suite-header:hover { background: rgba(255,255,255,0.03); }
+    .suites-card{overflow:hidden}
+    .suites-hdr{padding:16px 18px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between}
+    .suites-hdr-title{font-size:13px;font-weight:700}
+    .suite-count-lbl{font-size:12px;color:var(--muted)}
+    .suite{border-bottom:1px solid var(--border)}
+    .suite:last-child{border:none}
+    .suite-hdr{padding:12px 18px;display:flex;align-items:center;gap:10px;
+      cursor:pointer;transition:background .15s}
+    .suite-hdr:hover{background:rgba(255,255,255,.03)}
+    .suite-badge{font-size:10px;font-weight:700;padding:2px 7px;
+      border-radius:4px;text-transform:uppercase}
+    .badge-pass{background:var(--gdim);color:var(--green)}
+    .badge-fail{background:var(--rdim);color:var(--red)}
+    .suite-file{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;
+      color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .suite-counts{font-size:11px;color:var(--muted);white-space:nowrap}
+    .chevron{color:var(--muted);transition:transform .2s;font-size:11px}
+    .suite.open .chevron{transform:rotate(90deg)}
+    .test-list{display:none}
+    .suite.open .test-list{display:block}
+    .test-case{padding:9px 18px 9px 48px;display:flex;align-items:flex-start;gap:9px;
+      border-top:1px solid rgba(255,255,255,.04)}
+    .test-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+    .test-name{font-size:12px;flex:1;line-height:1.4}
+    .test-dur{font-size:10px;color:var(--muted);white-space:nowrap;font-family:'JetBrains Mono',monospace}
+    .test-err{margin-top:5px;padding:6px 8px;background:rgba(239,68,68,.08);
+      border-left:2px solid var(--red);border-radius:3px;font-size:10px;
+      font-family:'JetBrains Mono',monospace;color:#fca5a5;white-space:pre-wrap;word-break:break-word}
 
-    .suite-badge {
-      font-size: 10px; font-weight: 700; letter-spacing: .06em;
-      padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
-    }
-    .badge-pass { background: var(--green-dim);   color: var(--green); }
-    .badge-fail { background: var(--red-dim);     color: var(--red); }
-    .badge-idle { background: var(--yellow-dim);  color: var(--yellow); }
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:22px;right:22px;z-index:999;
+      padding:11px 16px;border-radius:9px;font-size:12px;font-weight:500;
+      background:rgba(20,20,50,.95);border:1px solid var(--border);
+      backdrop-filter:blur(20px);transform:translateY(80px);opacity:0;
+      transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+    #toast.show{transform:translateY(0);opacity:1}
+    #toast.success{border-color:rgba(16,185,129,.5);color:var(--green)}
+    #toast.error{border-color:rgba(239,68,68,.5);color:var(--red)}
 
-    .suite-file {
-      flex: 1; font-family: 'JetBrains Mono', monospace;
-      font-size: 12px; color: var(--muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .suite-counts { font-size: 12px; color: var(--muted); white-space: nowrap; }
-    .suite-chevron { color: var(--muted); transition: transform .2s; font-size: 12px; }
-    .suite.open .suite-chevron { transform: rotate(90deg); }
-
-    .test-list { display: none; }
-    .suite.open .test-list { display: block; }
-
-    .test-case {
-      padding: 10px 20px 10px 52px;
-      display: flex; align-items: flex-start; gap: 10px;
-      border-top: 1px solid rgba(255,255,255,0.04);
-      transition: background .15s;
-    }
-    .test-case:hover { background: rgba(255,255,255,0.02); }
-    .test-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-    .test-name { font-size: 13px; flex: 1; line-height: 1.4; }
-    .test-dur  { font-size: 11px; color: var(--muted); white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
-    .test-error {
-      margin-top: 6px; padding: 8px 10px;
-      background: rgba(239,68,68,0.08); border-left: 2px solid var(--red);
-      border-radius: 4px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
-      color: #fca5a5; white-space: pre-wrap; word-break: break-word;
-    }
-    .test-body { flex: 1; }
-
-    /* ── Empty / Loading States ── */
-    .empty-state {
-      padding: 60px 20px; text-align: center; color: var(--muted);
-    }
-    .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .empty-sub { font-size: 13px; }
-
-    /* ── Toast ── */
-    #toast {
-      position: fixed; bottom: 24px; right: 24px; z-index: 999;
-      padding: 12px 18px; border-radius: 10px;
-      font-size: 13px; font-weight: 500;
-      background: rgba(30,30,60,0.95);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      transform: translateY(80px); opacity: 0;
-      transition: all .3s cubic-bezier(.34,1.56,.64,1);
-      pointer-events: none;
-    }
-    #toast.show { transform: translateY(0); opacity: 1; }
-    #toast.success { border-color: rgba(16,185,129,0.5); color: var(--green); }
-    #toast.error   { border-color: rgba(239,68,68,0.5);  color: var(--red); }
-
-    /* ── Running pulse ── */
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
-    .pulse { animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .pulse{animation:pulse 1.5s ease-in-out infinite}
   </style>
 </head>
 <body>
-
-<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
 <header>
-  <div class="wrapper">
-    <div class="header-inner">
+  <div class="wrap">
+    <div class="hdr">
       <div class="logo">
         <div class="logo-icon">🧪</div>
-        <div class="logo-text">
+        <div>
           <h1>CoderNest QA Core</h1>
           <p>Automated Testing Dashboard</p>
         </div>
       </div>
-      <div class="header-actions">
-        <div class="last-run">Last run: <span id="last-run-time">—</span></div>
-        <button class="btn btn-primary" id="run-btn" onclick="runTests()">
-          <div class="spinner"></div>
-          <span class="btn-icon">▶</span>
-          <span id="run-label">Run Tests</span>
-        </button>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('smart')" id="tab-smart">🤖 Smart QA</button>
+        <button class="tab"       onclick="switchTab('unit')"  id="tab-unit">⚡ Unit Tests</button>
       </div>
     </div>
   </div>
 </header>
 
-<!-- ── Main ─────────────────────────────────────────────────────────────── -->
-<main>
-  <div class="wrapper">
+<!-- ══════════════════════════════════════════
+     SMART QA PANEL
+═══════════════════════════════════════════ -->
+<div class="panel active" id="panel-smart">
+  <div class="wrap">
 
-    <!-- Status Banner -->
-    <div class="status-banner idle" id="status-banner">
-      <div class="status-icon" id="status-icon">🔵</div>
+    <!-- URL Bar -->
+    <div class="url-bar" style="margin-top:28px">
+      <input class="url-input" type="url" id="url-input"
+        placeholder="Paste your app URL here — e.g. https://your-app.vercel.app"
+        onkeydown="if(event.key==='Enter')startScan()"/>
+      <button class="btn btn-primary" id="scan-btn" onclick="startScan()">
+        <div class="spinner"></div>
+        <span class="btn-icon">🚀</span>
+        <span id="scan-label">Start QA Scan</span>
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label">
+        <span id="progress-step">Initialising…</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <!-- Overall Score Ring -->
+    <div class="score-hero" id="score-hero">
+      <div class="score-ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="58" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="13"/>
+          <circle cx="70" cy="70" r="58" fill="none" id="score-arc"
+            stroke-width="13" stroke-linecap="round"
+            stroke-dasharray="0 365" style="transition:stroke-dasharray 1s ease"/>
+        </svg>
+        <div class="score-ring-center">
+          <div class="score-num" id="score-num">—</div>
+          <div class="score-lbl">/ 100</div>
+        </div>
+      </div>
+      <div class="score-grade" id="score-grade"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px" id="score-sub"></div>
+    </div>
+
+    <!-- Report Cards -->
+    <div class="report-grid" id="report-grid" style="display:none"></div>
+
+    <!-- Issues List -->
+    <div class="issues-section" id="issues-section">
+      <div class="ss-title">🔍 All Issues Found</div>
+      <div id="issues-list"></div>
+    </div>
+
+    <!-- Screenshots -->
+    <div class="screenshots-section" id="screenshots-section">
+      <div class="ss-title">📸 Page Screenshots</div>
+      <div class="ss-grid" id="ss-grid"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty" id="smart-empty">
+      <div class="empty-icon">🔬</div>
+      <div class="empty-h">Ready to scan</div>
+      <div>Paste any URL above and click <strong>Start QA Scan</strong>.</div>
+      <div style="margin-top:8px;font-size:12px">The engine will crawl every page and test like a senior QA engineer.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     UNIT TEST PANEL
+═══════════════════════════════════════════ -->
+<div class="panel" id="panel-unit">
+  <div class="wrap">
+    <div class="unit-header" style="margin-top:28px">
+      <div class="last-run">Last run: <span id="last-run-time">—</span></div>
+      <button class="btn btn-primary" id="run-btn" onclick="runUnitTests()">
+        <div class="spinner"></div>
+        <span class="btn-icon">▶</span>
+        <span id="run-label">Run Tests</span>
+      </button>
+    </div>
+
+    <div class="status-banner idle" id="unit-status">
+      <div class="status-icon" id="unit-status-icon">🔵</div>
       <div>
-        <div class="status-label" id="status-label">Waiting for results</div>
-        <div class="status-sub"  id="status-sub">Click "Run Tests" to start the test engine.</div>
+        <div class="status-label" id="unit-status-label">Waiting for results</div>
+        <div class="status-sub" id="unit-status-sub">Click "Run Tests" to start.</div>
       </div>
     </div>
 
-    <!-- Stat Cards -->
     <div class="stats-grid">
       <div class="stat-card total">
         <div class="stat-label">Total Tests</div>
-        <div class="stat-value" id="stat-total">—</div>
-        <div class="stat-sub">across all suites</div>
+        <div class="stat-value" id="u-total">—</div>
+        <div class="stat-sub">all suites</div>
       </div>
       <div class="stat-card passed">
         <div class="stat-label">✅ Passed</div>
-        <div class="stat-value" id="stat-passed">—</div>
-        <div class="stat-sub" id="stat-pass-pct">—</div>
+        <div class="stat-value" id="u-passed">—</div>
+        <div class="stat-sub" id="u-pct">—</div>
       </div>
       <div class="stat-card failed">
         <div class="stat-label">❌ Failed</div>
-        <div class="stat-value" id="stat-failed">—</div>
-        <div class="stat-sub" id="stat-skipped">— skipped</div>
+        <div class="stat-value" id="u-failed">—</div>
+        <div class="stat-sub" id="u-skipped">—</div>
       </div>
       <div class="stat-card dur">
-        <div class="stat-label">⏱ Duration</div>
-        <div class="stat-value" id="stat-dur">—</div>
-        <div class="stat-sub" id="stat-env">—</div>
+        <div class="stat-label">⏱ Time</div>
+        <div class="stat-value" id="u-dur">—</div>
+        <div class="stat-sub">duration</div>
       </div>
     </div>
 
-    <!-- Content Grid -->
     <div class="content-grid">
-
-      <!-- Donut Chart -->
       <div class="donut-card">
         <div class="donut-title">Pass Rate</div>
         <div class="donut-wrap">
-          <svg width="160" height="160" viewBox="0 0 160 160">
-            <circle class="donut-bg"   cx="80" cy="80" r="64" />
-            <circle class="donut-fail" cx="80" cy="80" r="64" id="donut-fail-arc"
-                    stroke-dasharray="0 402" />
-            <circle class="donut-pass" cx="80" cy="80" r="64" id="donut-pass-arc"
-                    stroke-dasharray="0 402" />
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="donut-bg"   cx="75" cy="75" r="60"/>
+            <circle class="donut-pass" cx="75" cy="75" r="60" id="u-donut"
+                    stroke-dasharray="0 377"/>
           </svg>
           <div class="donut-center">
-            <div class="donut-pct" id="donut-pct">—</div>
-            <div class="donut-pct-label">pass rate</div>
+            <div class="donut-pct" id="u-donut-pct">—</div>
+            <div class="donut-pct-lbl">pass rate</div>
           </div>
         </div>
         <div class="donut-legend">
-          <div class="legend-item">
-            <div class="legend-dot" style="background:var(--green)"></div>
-            <span id="leg-pass">Passed: —</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:var(--red)"></div>
-            <span id="leg-fail">Failed: —</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:var(--yellow)"></div>
-            <span id="leg-skip">Skipped: —</span>
-          </div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span id="u-leg-pass">Passed: —</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span id="u-leg-fail">Failed: —</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div><span id="u-leg-skip">Skipped: —</span></div>
         </div>
       </div>
-
-      <!-- Test Suites -->
       <div class="suites-card">
-        <div class="suites-header">
-          <div class="suites-header-title">Test Suites</div>
-          <div class="suite-count" id="suite-count">—</div>
+        <div class="suites-hdr">
+          <div class="suites-hdr-title">Test Suites</div>
+          <div class="suite-count-lbl" id="u-suite-count">—</div>
         </div>
-        <div id="suites-list">
-          <div class="empty-state">
+        <div id="u-suites-list">
+          <div class="empty" style="padding:40px 20px">
             <div class="empty-icon">🧬</div>
-            <div class="empty-title">No results yet</div>
-            <div class="empty-sub">Run the test suite to see results here.</div>
+            <div class="empty-h">No results yet</div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
-</main>
+</div>
 
-<!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+<!-- ── TOAST ── -->
 <div id="toast"></div>
 
 <script>
-  /* ── State ─────────────────────────────────────────────────────────────── */
-  let pollInterval  = null;
-  let lastTimestamp = null;
-  let isRunning     = false;
+/* ══════════════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════════════ */
+let activeTab      = 'smart';
+let smartPolling   = null;
+let unitPolling    = null;
+let lastUnitTs     = null;
+let isUnitRunning  = false;
+let isScanning     = false;
+let lastProgress   = 0;
 
-  const CIRC = 2 * Math.PI * 64; // circumference
+const CIRC_DONUT = 2 * Math.PI * 60;
+const CIRC_SCORE = 2 * Math.PI * 58;
 
-  /* ── Boot ───────────────────────────────────────────────────────────────── */
-  fetchResults();
-  pollInterval = setInterval(fetchResults, 3000);
+/* ══════════════════════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════════════════════ */
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
 
-  /* ── Fetch Results ──────────────────────────────────────────────────────── */
-  async function fetchResults() {
-    try {
-      const res  = await fetch('/api/v1/results');
-      const json = await res.json();
+/* ══════════════════════════════════════════════════════════════════
+   SMART QA
+══════════════════════════════════════════════════════════════════ */
+async function startScan() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) { toast('⚠️ Please enter a URL first.', 'error'); return; }
+  if (isScanning) return;
 
-      const wasRunning = isRunning;
-      isRunning = json.isRunning;
-      syncRunButton();
-
-      if (!json.exists) return;
-
-      const data = json.data;
-      if (data.timestamp === lastTimestamp && wasRunning === isRunning) return;
-
-      lastTimestamp = data.timestamp;
-      renderDashboard(data);
-
-      if (wasRunning && !isRunning) {
-        toast(data.success ? '✅ Test run completed successfully!' : '❌ Test run finished with failures.', data.success ? 'success' : 'error');
-      }
-    } catch (e) {
-      console.warn('Failed to fetch results:', e);
-    }
+  try { new URL(url); } catch {
+    toast('❌ Invalid URL. Include https://', 'error'); return;
   }
 
-  /* ── Render Dashboard ───────────────────────────────────────────────────── */
-  function renderDashboard(data) {
-    const { total, passed, failed, skipped, timestamp, success, suites } = data;
-    const pct = total > 0 ? Math.round((passed / total) * 100) : 0;
+  const res = await fetch('/api/v1/smart-test', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ url })
+  });
 
-    // Timestamp
-    document.getElementById('last-run-time').textContent =
-      new Date(timestamp).toLocaleString();
+  if (res.status === 409) { toast('⏳ A scan is already running.', 'error'); return; }
+  if (!res.ok) { toast('❌ Failed to start scan.', 'error'); return; }
 
-    // Status Banner
-    const banner  = document.getElementById('status-banner');
-    const icon    = document.getElementById('status-icon');
-    const label   = document.getElementById('status-label');
-    const sub     = document.getElementById('status-sub');
+  isScanning = true;
+  setScanButton(true);
+  document.getElementById('smart-empty').style.display = 'none';
+  document.getElementById('report-grid').style.display = 'none';
+  document.getElementById('score-hero').classList.remove('show');
+  document.getElementById('issues-section').classList.remove('show');
+  document.getElementById('screenshots-section').classList.remove('show');
+  document.getElementById('progress-wrap').classList.add('show');
 
-    banner.className = 'status-banner ' + (success ? 'pass' : 'fail');
-    icon.textContent  = success ? '✅' : '❌';
-    label.textContent = success ? 'All tests passed' : `${failed} test${failed !== 1 ? 's' : ''} failed`;
-    sub.textContent   = `${passed} passed · ${failed} failed · ${skipped} skipped · ${total} total`;
+  toast('🚀 Smart QA scan started!', 'success');
 
-    // Stat Cards
-    animateNumber('stat-total',  total);
-    animateNumber('stat-passed', passed);
-    animateNumber('stat-failed', failed);
+  if (smartPolling) clearInterval(smartPolling);
+  smartPolling = setInterval(pollSmart, 2000);
+}
 
-    document.getElementById('stat-pass-pct').textContent = pct + '% pass rate';
-    document.getElementById('stat-skipped').textContent  = skipped + ' skipped';
-    document.getElementById('stat-dur').textContent      = '—';
-    document.getElementById('stat-env').textContent      = 'development';
+async function pollSmart() {
+  try {
+    const res  = await fetch('/api/v1/smart-status');
+    const data = await res.json();
 
-    // Donut
-    const passArc = CIRC * (passed / Math.max(total, 1));
-    const failArc = CIRC * (failed / Math.max(total, 1));
-    const skipArc = CIRC * (skipped / Math.max(total, 1));
-
-    document.getElementById('donut-pass-arc').style.strokeDasharray =
-      `${passArc} ${CIRC - passArc}`;
-    document.getElementById('donut-fail-arc').style.strokeDasharray =
-      `${failArc} ${CIRC - failArc}`;
-    document.getElementById('donut-fail-arc').style.strokeDashoffset =
-      -passArc;
-
-    document.getElementById('donut-pct').textContent     = pct + '%';
-    document.getElementById('donut-pct').style.color     = pct === 100 ? 'var(--green)' : pct > 50 ? 'var(--yellow)' : 'var(--red)';
-    document.getElementById('leg-pass').textContent  = `Passed: ${passed}`;
-    document.getElementById('leg-fail').textContent  = `Failed: ${failed}`;
-    document.getElementById('leg-skip').textContent  = `Skipped: ${skipped}`;
-
-    // Suite count
-    document.getElementById('suite-count').textContent =
-      `${(suites || []).length} suite${(suites||[]).length !== 1 ? 's' : ''}`;
-
-    // Suites list
-    renderSuites(suites || []);
-  }
-
-  function renderSuites(suites) {
-    const container = document.getElementById('suites-list');
-    if (!suites.length) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-title">No suites found</div></div>';
-      return;
+    // Update progress bar
+    if (data.progress !== undefined) {
+      const pct = data.progress;
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent  = pct + '%';
+      document.getElementById('progress-step').textContent = data.step || '…';
     }
 
-    container.innerHTML = suites.map((suite, si) => {
-      const ok = suite.failed === 0;
-      const badge = `<span class="suite-badge ${ok ? 'badge-pass' : 'badge-fail'}">${ok ? 'PASS' : 'FAIL'}</span>`;
-      const tests = (suite.tests || []).map(t => {
-        const icon  = t.status === 'passed' ? '✓' : t.status === 'failed' ? '✕' : '○';
-        const color = t.status === 'passed' ? 'var(--green)' : t.status === 'failed' ? 'var(--red)' : 'var(--yellow)';
-        const dur   = t.durationMs ? `${t.durationMs}ms` : '';
-        const err   = t.errorMessage ? `<div class="test-error">${escHtml(t.errorMessage)}</div>` : '';
-        return `
-          <div class="test-case">
-            <div class="test-icon" style="color:${color}">${icon}</div>
-            <div class="test-body">
-              <div class="test-name">${escHtml(t.name)}</div>
-              ${err}
-            </div>
-            <div class="test-dur">${dur}</div>
-          </div>`;
-      }).join('');
-
-      return `
-        <div class="suite" id="suite-${si}">
-          <div class="suite-header" onclick="toggleSuite(${si})">
-            ${badge}
-            <div class="suite-file">${escHtml(suite.file)}</div>
-            <div class="suite-counts">${suite.passed}✓ ${suite.failed}✕</div>
-            <div class="suite-chevron">▶</div>
-          </div>
-          <div class="test-list">${tests}</div>
-        </div>`;
-    }).join('');
-
-    // Auto-open failing suites
-    suites.forEach((s, i) => { if (s.failed > 0) toggleSuite(i); });
-  }
-
-  function toggleSuite(i) {
-    document.getElementById('suite-' + i)?.classList.toggle('open');
-  }
-
-  /* ── Run Tests ──────────────────────────────────────────────────────────── */
-  async function runTests() {
-    if (isRunning) return;
-    try {
-      const res  = await fetch('/api/v1/run-tests', { method: 'POST' });
-      const json = await res.json();
-      if (res.status === 409) { toast('⏳ A test run is already in progress.', 'error'); return; }
-      isRunning = true;
-      syncRunButton();
-      updateBannerRunning();
-      toast('🚀 Test run started — results will update automatically.', 'success');
-    } catch (e) {
-      toast('❌ Failed to start test run.', 'error');
+    if (data.status === 'complete') {
+      clearInterval(smartPolling);
+      isScanning = false;
+      setScanButton(false);
+      document.getElementById('progress-wrap').classList.remove('show');
+      renderSmartReport(data.report);
+      toast('✅ QA Scan complete!', 'success');
+    } else if (data.status === 'error') {
+      clearInterval(smartPolling);
+      isScanning = false;
+      setScanButton(false);
+      document.getElementById('progress-wrap').classList.remove('show');
+      document.getElementById('smart-empty').style.display = 'block';
+      toast('❌ Scan failed: ' + (data.error || 'Unknown error'), 'error');
+    } else if (data.status === 'idle' && isScanning) {
+      // Still booting
     }
+  } catch(e) { console.warn('Poll error:', e); }
+}
+
+function setScanButton(scanning) {
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = scanning;
+  document.getElementById('scan-label').textContent = scanning ? 'Scanning…' : 'Start QA Scan';
+  btn.classList.toggle('running', scanning);
+}
+
+function renderSmartReport(r) {
+  if (!r) return;
+
+  // Score ring
+  const score = r.overallScore ?? 0;
+  const CIRC  = 2 * Math.PI * 58;
+  const arc   = CIRC * (score / 100);
+  const arc_el = document.getElementById('score-arc');
+  arc_el.style.strokeDasharray = `${arc} ${CIRC - arc}`;
+  arc_el.style.stroke = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-num').style.color = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+
+  const grade = score >= 90 ? '🏆 Excellent' : score >= 75 ? '✅ Good' : score >= 55 ? '⚠️ Needs Work' : '🔴 Critical Issues';
+  document.getElementById('score-grade').textContent = grade;
+  document.getElementById('score-sub').textContent =
+    `${r.pagesScanned} pages scanned · ${r.timestamp ? new Date(r.timestamp).toLocaleString() : ''}`;
+
+  document.getElementById('score-hero').classList.add('show');
+
+  // Report cards
+  const cards = [
+    { icon:'🔗', title:'Navigation',     score:r.navigation?.score,     items:[
+      `${r.navigation?.totalLinks} links checked`,
+      `${r.navigation?.brokenLinks?.length ?? 0} broken links`,
+    ]},
+    { icon:'♿', title:'Accessibility',  score:r.accessibility?.score,  items:[
+      `${r.accessibility?.totalViolations} violations`,
+      `${r.accessibility?.criticalCount} critical`,
+    ]},
+    { icon:'⚡', title:'Performance',   score:r.performance?.score,    items:[
+      `Avg load: ${r.performance?.avgLoad}ms`,
+      `${r.performance?.pages?.filter(p=>p.rating==='slow').length ?? 0} slow pages`,
+    ]},
+    { icon:'🔒', title:'Security',      score:r.security?.score,       items:[
+      `HTTPS: ${r.security?.https ? '✅' : '❌'}`,
+      `${r.security?.missingCount} missing headers`,
+    ]},
+    { icon:'📝', title:'Forms',         score:r.forms?.score,          items:[
+      `${r.forms?.totalForms} forms found`,
+      `${r.forms?.unlabeledFields} unlabeled fields`,
+    ]},
+  ];
+
+  const grid = document.getElementById('report-grid');
+  grid.innerHTML = cards.map(c => {
+    const s = c.score ?? 0;
+    const col = s >= 80 ? '#10b981' : s >= 50 ? '#f59e0b' : '#ef4444';
+    return `<div class="report-card">
+      <div class="rc-header">
+        <div class="rc-title">${c.icon} ${c.title}</div>
+        <div class="rc-score" style="color:${col}">${s}</div>
+      </div>
+      <div class="rc-bar-track"><div class="rc-bar-fill" style="width:${s}%;background:${col}"></div></div>
+      <div class="rc-items">${c.items.map(i=>`<div class="rc-item"><span class="rc-item-icon">›</span>${i}</div>`).join('')}</div>
+    </div>`;
+  }).join('');
+  grid.style.display = 'grid';
+
+  // Issues list
+  const issues = [];
+  (r.navigation?.brokenLinks || []).forEach(l =>
+    issues.push({ sev: l.severity, title: `Broken link (HTTP ${l.statusCode})`, sub: l.url }));
+  (r.accessibility?.violations || []).forEach(v =>
+    issues.push({ sev: v.impact === 'critical' || v.impact === 'serious' ? 'critical' : 'warning',
+      title: v.description, sub: `${v.id} · ${v.count} element(s) · ${v.page}` }));
+  (r.security?.headers || []).filter(h => !h.present).forEach(h =>
+    issues.push({ sev: h.severity, title: `Missing header: ${h.name}`, sub: '' }));
+  (r.performance?.pages || []).filter(p => p.rating === 'slow').forEach(p =>
+    issues.push({ sev: 'warning', title: `Slow page load: ${p.loaded}ms`, sub: p.url }));
+
+  if (issues.length) {
+    document.getElementById('issues-list').innerHTML = issues.map(i =>
+      `<div class="issue-item">
+        <span class="issue-sev sev-${i.sev}">${i.sev}</span>
+        <div class="issue-body">
+          <div class="issue-title">${escH(i.title)}</div>
+          ${i.sub ? `<div class="issue-sub">${escH(i.sub)}</div>` : ''}
+        </div>
+      </div>`).join('');
+    document.getElementById('issues-section').classList.add('show');
   }
 
-  function syncRunButton() {
-    const btn   = document.getElementById('run-btn');
-    const label = document.getElementById('run-label');
-    btn.disabled = isRunning;
-    label.textContent = isRunning ? 'Running…' : 'Run Tests';
-    btn.classList.toggle('running', isRunning);
+  // Screenshots
+  if (r.screenshots?.length) {
+    document.getElementById('ss-grid').innerHTML = r.screenshots.map((s, si) =>
+      `<div class="ss-card">
+        <div class="ss-tabs">
+          <button class="ss-tab active" onclick="ssTab(${si},'desktop',this)">🖥 Desktop</button>
+          <button class="ss-tab"        onclick="ssTab(${si},'tablet',this)">📱 Tablet</button>
+          <button class="ss-tab"        onclick="ssTab(${si},'mobile',this)">📲 Mobile</button>
+        </div>
+        <div class="ss-url">${escH(s.url)}</div>
+        <img class="ss-img active" id="ss-${si}-desktop" src="${s.desktop}" alt="desktop screenshot" loading="lazy"/>
+        <img class="ss-img"        id="ss-${si}-tablet"  src="${s.tablet}"  alt="tablet screenshot"  loading="lazy"/>
+        <img class="ss-img"        id="ss-${si}-mobile"  src="${s.mobile}"  alt="mobile screenshot"  loading="lazy"/>
+      </div>`).join('');
+    document.getElementById('screenshots-section').classList.add('show');
   }
+}
 
-  function updateBannerRunning() {
-    const banner = document.getElementById('status-banner');
-    const icon   = document.getElementById('status-icon');
-    const label  = document.getElementById('status-label');
-    const sub    = document.getElementById('status-sub');
-    banner.className = 'status-banner idle';
-    icon.textContent  = '⏳';
-    label.innerHTML   = '<span class="pulse">Running tests…</span>';
-    sub.textContent   = 'This may take a few seconds. Results will appear automatically.';
-  }
+function ssTab(si, vp, btn) {
+  const card = btn.closest('.ss-card');
+  card.querySelectorAll('.ss-tab').forEach(t => t.classList.remove('active'));
+  card.querySelectorAll('.ss-img').forEach(i => i.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`ss-${si}-${vp}`).classList.add('active');
+}
 
-  /* ── Helpers ────────────────────────────────────────────────────────────── */
-  function animateNumber(id, target) {
-    const el  = document.getElementById(id);
-    const cur = parseInt(el.textContent) || 0;
-    const dur = 600;
-    const start = performance.now();
-    const step = (now) => {
-      const p = Math.min((now - start) / dur, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(cur + (target - cur) * ease);
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
+/* ══════════════════════════════════════════════════════════════════
+   UNIT TESTS
+══════════════════════════════════════════════════════════════════ */
+unitPolling = setInterval(pollUnit, 3000);
+pollUnit();
 
-  function escHtml(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+async function pollUnit() {
+  try {
+    const res  = await fetch('/api/v1/results');
+    const json = await res.json();
+    const wasR = isUnitRunning;
+    isUnitRunning = json.isRunning;
+    syncUnitBtn();
+    if (!json.exists) return;
+    const d = json.data;
+    if (d.timestamp === lastUnitTs && wasR === isUnitRunning) return;
+    lastUnitTs = d.timestamp;
+    renderUnit(d);
+    if (wasR && !isUnitRunning)
+      toast(d.success ? '✅ Unit tests passed!' : '❌ Unit tests finished with failures.', d.success ? 'success' : 'error');
+  } catch(e) { console.warn(e); }
+}
 
-  let toastTimer = null;
-  function toast(msg, type = 'success') {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className   = 'show ' + type;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.className = ''; }, 3500);
-  }
+function renderUnit(d) {
+  const { total, passed, failed, skipped, timestamp, success, suites } = d;
+  const pct = total > 0 ? Math.round(passed / total * 100) : 0;
+
+  document.getElementById('last-run-time').textContent = new Date(timestamp).toLocaleString();
+
+  const banner = document.getElementById('unit-status');
+  banner.className = 'status-banner ' + (success ? 'pass' : 'fail');
+  document.getElementById('unit-status-icon').textContent  = success ? '✅' : '❌';
+  document.getElementById('unit-status-label').textContent = success ? 'All tests passed' : `${failed} test(s) failed`;
+  document.getElementById('unit-status-sub').textContent   = `${passed} passed · ${failed} failed · ${skipped} skipped · ${total} total`;
+
+  animN('u-total',  total);
+  animN('u-passed', passed);
+  animN('u-failed', failed);
+  document.getElementById('u-pct').textContent     = pct + '% pass rate';
+  document.getElementById('u-skipped').textContent = skipped + ' skipped';
+  document.getElementById('u-dur').textContent      = '—';
+
+  const arc = CIRC_DONUT * (passed / Math.max(total, 1));
+  document.getElementById('u-donut').style.strokeDasharray = `${arc} ${CIRC_DONUT - arc}`;
+  document.getElementById('u-donut-pct').textContent = pct + '%';
+  document.getElementById('u-donut-pct').style.color = pct === 100 ? 'var(--green)' : pct > 50 ? 'var(--yellow)' : 'var(--red)';
+  document.getElementById('u-leg-pass').textContent  = `Passed: ${passed}`;
+  document.getElementById('u-leg-fail').textContent  = `Failed: ${failed}`;
+  document.getElementById('u-leg-skip').textContent  = `Skipped: ${skipped}`;
+  document.getElementById('u-suite-count').textContent = `${(suites||[]).length} suite(s)`;
+
+  renderSuites(suites || []);
+}
+
+function renderSuites(suites) {
+  const c = document.getElementById('u-suites-list');
+  if (!suites.length) { c.innerHTML = '<div class="empty" style="padding:40px 20px"><div class="empty-icon">🧬</div><div class="empty-h">No suites</div></div>'; return; }
+  c.innerHTML = suites.map((s, i) => {
+    const ok = s.failed === 0;
+    return `<div class="suite" id="us-${i}">
+      <div class="suite-hdr" onclick="toggleS(${i})">
+        <span class="suite-badge ${ok?'badge-pass':'badge-fail'}">${ok?'PASS':'FAIL'}</span>
+        <div class="suite-file">${escH(s.file)}</div>
+        <div class="suite-counts">${s.passed}✓ ${s.failed}✕</div>
+        <div class="chevron">▶</div>
+      </div>
+      <div class="test-list">${(s.tests||[]).map(t=>{
+        const ic = t.status==='passed'?'✓':t.status==='failed'?'✕':'○';
+        const cl = t.status==='passed'?'var(--green)':t.status==='failed'?'var(--red)':'var(--yellow)';
+        const err = t.errorMessage ? `<div class="test-err">${escH(t.errorMessage.slice(0,300))}</div>` : '';
+        return `<div class="test-case"><div class="test-icon" style="color:${cl}">${ic}</div><div style="flex:1"><div class="test-name">${escH(t.name)}</div>${err}</div><div class="test-dur">${t.durationMs||0}ms</div></div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+  suites.forEach((s,i) => { if(s.failed>0) toggleS(i); });
+}
+
+function toggleS(i) { document.getElementById('us-'+i)?.classList.toggle('open'); }
+
+async function runUnitTests() {
+  if (isUnitRunning) return;
+  const res = await fetch('/api/v1/run-tests', { method:'POST' });
+  if (res.status === 409) { toast('⏳ Already running.', 'error'); return; }
+  isUnitRunning = true;
+  syncUnitBtn();
+  toast('🚀 Unit tests started!', 'success');
+}
+
+function syncUnitBtn() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = isUnitRunning;
+  document.getElementById('run-label').textContent = isUnitRunning ? 'Running…' : 'Run Tests';
+  btn.classList.toggle('running', isUnitRunning);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════════════ */
+function animN(id, target) {
+  const el = document.getElementById(id), cur = parseInt(el.textContent)||0, dur = 600, t0 = performance.now();
+  const step = now => { const p = Math.min((now-t0)/dur,1), e = 1-Math.pow(1-p,3); el.textContent = Math.round(cur+(target-cur)*e); if(p<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+let toastT = null;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show '+type;
+  clearTimeout(toastT); toastT = setTimeout(()=>{ el.className=''; }, 3500);
+}
 </script>
 </body>
 </html>

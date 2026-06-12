@@ -15,8 +15,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "dotenv": "^16.4.5",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "playwright": "^1.60.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-12T20:30:43.038Z",
+  "timestamp": "2026-06-12T20:39:31.133Z",
   "success": false,
   "total": 11,
   "passed": 11,
@@ -15,19 +15,19 @@
         {
           "name": "GET /health — Health Check should return HTTP 200",
           "status": "passed",
-          "durationMs": 36,
+          "durationMs": 33,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check response body should have status: \"ok\"",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 5,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check response body should include service name and version",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         },
         {
@@ -39,7 +39,7 @@
         {
           "name": "GET /health — Health Check should return HTTP 404 for an unknown route",
           "status": "passed",
-          "durationMs": 3,
+          "durationMs": 4,
           "errorMessage": null
         },
         {
@@ -51,7 +51,7 @@
         {
           "name": "GET /api/v1/status — Extended Status response body should have status: \"operational\"",
           "status": "passed",
-          "durationMs": 3,
+          "durationMs": 2,
           "errorMessage": null
         },
         {
@@ -63,13 +63,13 @@
         {
           "name": "POST /api/v1/echo — Echo Endpoint should return HTTP 200",
           "status": "passed",
-          "durationMs": 12,
+          "durationMs": 13,
           "errorMessage": null
         },
         {
           "name": "POST /api/v1/echo — Echo Endpoint should echo the request body under the \"received\" key",
           "status": "passed",
-          "durationMs": 5,
+          "durationMs": 4,
           "errorMessage": null
         },
         {
