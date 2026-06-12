@@ -19,5 +19,13 @@
       "method": "GET"
     }
   ],
+  "secureEndpoints": [
+    { "path": "/admin", "method": "GET" },
+    { "path": "/api/payroll", "method": "GET" }
+  ],
+  "databaseEndpoint": {
+    "path": "/api/health/db",
+    "method": "GET"
+  },
   "authToken": "Bearer YOUR_PLACEHOLDER_TOKEN"
 }

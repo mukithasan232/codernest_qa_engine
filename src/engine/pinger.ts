@@ -3,6 +3,16 @@ import { QAConfig } from '../config/configLoader';
 import { Logger } from '../utils/logger';
 import chalk from 'chalk';
 
+export interface PingResult {
+  url: string;
+  method: string;
+  status: number | string;
+  latency: number;
+  passed: boolean;
+  isError: boolean;
+  errorMessage?: string;
+}
+
 export class DiagnosticPinger {
   private config: QAConfig;
 
@@ -13,11 +23,20 @@ export class DiagnosticPinger {
   /**
    * Iterates through the configured endpoints, makes HTTP requests,
    * measures latency, and logs the outcome in a color-coded format.
+   * Returns an array of PingResult for the reporter.
    */
-  public async runDiagnostics() {
+  public async runDiagnostics(): Promise<PingResult[]> {
     Logger.info(`Starting Diagnostics Engine against Base URL: ${this.config.baseUrl}\n`);
 
-    for (const endpoint of this.config.endpoints) {
+    const results: PingResult[] = [];
+    
+    // Combine endpoints and database endpoint for testing
+    const targets = [...this.config.endpoints];
+    if (this.config.databaseEndpoint) {
+      targets.push(this.config.databaseEndpoint);
+    }
+
+    for (const endpoint of targets) {
       const url = `${this.config.baseUrl}${endpoint.path}`;
       const startTime = Date.now();
 
@@ -29,17 +48,23 @@ export class DiagnosticPinger {
           headers: {
             Authorization: this.config.authToken,
           },
-          validateStatus: () => true, // Resolve on all statuses so we don't throw on 4xx/5xx natively
+          validateStatus: () => true, // Resolve on all statuses
         });
 
         const latency = Date.now() - startTime;
+        const passed = response.status >= 200 && response.status < 400;
         this.logResult(endpoint.method, url, response.status, latency);
+        
+        results.push({ url, method: endpoint.method, status: response.status, latency, passed, isError: false });
       } catch (error: any) {
-        // This only fires on absolute failures (network timeout, DNS error, etc.)
         const latency = Date.now() - startTime;
         this.logResult(endpoint.method, url, 'ERR', latency, true, error.message);
+        
+        results.push({ url, method: endpoint.method, status: 'ERR', latency, passed: false, isError: true, errorMessage: error.message });
       }
     }
+    
+    return results;
   }
 
   /**
