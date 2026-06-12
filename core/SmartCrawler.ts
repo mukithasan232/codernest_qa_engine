@@ -91,7 +91,7 @@ export class SmartCrawler {
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  private discoverLinks($: cheerio.CheerioAPI, currentUrl: string): string[] {
+  private discoverLinks($: ReturnType<typeof cheerio.load>, currentUrl: string): string[] {
     const hrefs: string[] = [];
     $('a[href]').each((_, el) => {
       let href = $(el).attr('href');
@@ -115,7 +115,7 @@ export class SmartCrawler {
     )];
   }
 
-  private discoverForms($: cheerio.CheerioAPI): DiscoveredForm[] {
+  private discoverForms($: ReturnType<typeof cheerio.load>): DiscoveredForm[] {
     const forms: DiscoveredForm[] = [];
     $('form').each((i, el) => {
       const id = $(el).attr('id') || `form-${i}`;
@@ -123,9 +123,9 @@ export class SmartCrawler {
       const method = ($(el).attr('method') || 'get').toUpperCase();
       
       const fields: any[] = [];
-      $(el).find('input, select, textare').each((_, inputEl) => {
+      $(el).find('input, select, textarea').each((_, inputEl) => {
         const inputName = $(inputEl).attr('name') || $(inputEl).attr('id') || '';
-        const inputType = $(inputEl).attr('type') || inputEl.tagName.toLowerCase();
+        const inputType = $(inputEl).attr('type') || (inputEl as any).tagName?.toLowerCase() || 'text';
         const required = typeof $(inputEl).attr('required') !== 'undefined';
         const hasLabel = !!$(inputEl).attr('id') && $(`label[for="${$(inputEl).attr('id')}"]`).length > 0;
         
