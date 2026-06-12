@@ -119,12 +119,12 @@ app.post('/api/v1/smart-test', (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/v1/audit — Synchronous dynamic audit.
+ * POST /api/v1/scan — Synchronous dynamic audit.
  * Body: { targetUrl: string, authToken?: string }
  */
 import { DynamicEngine } from '../src/engine/dynamicEngine';
 
-app.post('/api/v1/audit', async (req: Request, res: Response): Promise<void> => {
+app.post('/api/v1/scan', async (req: Request, res: Response): Promise<void> => {
   const { targetUrl, authToken } = req.body as { targetUrl?: string; authToken?: string };
 
   if (!targetUrl) {
