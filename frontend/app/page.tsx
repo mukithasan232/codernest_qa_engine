@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ShieldCheck, Server, Key, Activity, AlertCircle, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { ShieldCheck, Server, Key, Activity, AlertCircle, CheckCircle2, XCircle, Clock, FileDown, Trophy } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface ReportData {
   projectName: string;
@@ -12,6 +14,7 @@ interface ReportData {
   failed: number;
   severity: 'Healthy' | 'Degraded' | 'Critical';
   markdownResult: string;
+  grade?: 'A' | 'B' | 'C' | 'F';
 }
 
 export default function Dashboard() {
@@ -50,6 +53,25 @@ export default function Dashboard() {
         setError(err.message || 'Failed to reach the API. Please ensure the backend is running and the URL is valid.');
       }
     });
+  };
+
+  const downloadPDF = async () => {
+    const element = document.getElementById('report-container');
+    if (!element) return;
+    
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#0a0a0a' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`CoderNest-Audit-${new Date().getTime()}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate PDF', err);
+    }
   };
 
   return (
@@ -145,8 +167,29 @@ export default function Dashboard() {
 
         {/* Results Dashboard */}
         {report && (
-          <section className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h2 className="text-2xl font-semibold border-b border-neutral-800 pb-4">Audit Results</h2>
+          <section id="report-container" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 bg-neutral-950 p-4 -mx-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-neutral-800 pb-4 gap-4">
+              <h2 className="text-2xl font-semibold flex items-center gap-3">
+                Audit Results
+                {report.grade && (
+                  <span className={`text-sm px-3 py-1 rounded-full border font-bold flex items-center gap-1
+                    ${report.grade === 'A' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
+                      report.grade === 'B' ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 
+                      report.grade === 'C' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' : 
+                      'bg-red-500/20 text-red-400 border-red-500/30'}
+                  `}>
+                    <Trophy className="w-4 h-4" /> Grade {report.grade}
+                  </span>
+                )}
+              </h2>
+              
+              <button
+                onClick={downloadPDF}
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-lg transition-all flex items-center gap-2 border border-neutral-700"
+              >
+                <FileDown className="w-4 h-4" /> Download PDF Report
+              </button>
+            </div>
             
             {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

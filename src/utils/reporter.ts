@@ -18,6 +18,7 @@ export interface ReportData {
   severity: 'Healthy' | 'Degraded' | 'Critical';
   findings: Finding[];
   markdownResult?: string;
+  grade?: 'A' | 'B' | 'C' | 'F';
 }
 
 export const Reporter = {
@@ -34,6 +35,7 @@ export const Reporter = {
     
     const severityEmoji = data.severity === 'Healthy' ? '✅' : (data.severity === 'Degraded' ? '⚠️' : '❌');
     md += `- **Status**: ${severityEmoji} ${data.severity}\n`;
+    if (data.grade) md += `- **Overall Grade**: 🏆 Grade ${data.grade}\n`;
     md += `- **Tests Passed**: ${data.passed} / ${data.totalTests}\n\n`;
 
     // Findings Section

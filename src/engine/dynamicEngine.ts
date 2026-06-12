@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 import { Reporter, ReportData, Finding } from '../utils/reporter';
 import { Analyzer } from './analyzer';
 
@@ -16,10 +17,12 @@ export class DynamicEngine {
     const findings: Finding[] = [];
     let passed = 0;
     let failed = 0;
+    let totalChecks = 0;
 
     for (const path of this.pathsToTest) {
       const url = `${this.targetUrl}${path}`;
       const startTime = Date.now();
+      totalChecks++;
 
       try {
         const response = await axios.get(url, {
@@ -50,23 +53,79 @@ export class DynamicEngine {
             failed++;
           }
         }
+
+        // Deep Analysis on Root URL
+        if (path === '/') {
+          // Security Headers
+          const headers = response.headers;
+          ['strict-transport-security', 'x-frame-options', 'x-content-type-options'].forEach(header => {
+            totalChecks++;
+            if (headers[header]) {
+              findings.push({ status: 'PASS', message: `Security header ${header} is present.` });
+              passed++;
+            } else {
+              findings.push({ status: 'WARN', message: `Missing recommended security header: ${header}` });
+              failed++;
+            }
+          });
+
+          // SEO & A11y (Cheerio)
+          if (typeof response.data === 'string' && response.data.includes('<html')) {
+            const $ = cheerio.load(response.data);
+            
+            totalChecks++;
+            if ($('title').length > 0 && $('title').text().trim() !== '') {
+              findings.push({ status: 'PASS', message: `Document <title> is present.` });
+              passed++;
+            } else {
+              findings.push({ status: 'WARN', message: `Document <title> is missing.` });
+              failed++;
+            }
+
+            totalChecks++;
+            if ($('meta[name="description"]').length > 0) {
+              findings.push({ status: 'PASS', message: `Meta description is present.` });
+              passed++;
+            } else {
+              findings.push({ status: 'WARN', message: `Meta description is missing.` });
+              failed++;
+            }
+
+            totalChecks++;
+            if ($('h1').length > 0) {
+              findings.push({ status: 'PASS', message: `Primary <h1> tag is present.` });
+              passed++;
+            } else {
+              findings.push({ status: 'WARN', message: `Primary <h1> tag is missing.` });
+              failed++;
+            }
+          }
+        }
       } catch (error: any) {
         findings.push({ status: 'FAIL', message: `Network error reaching ${path}: ${error.message}` });
         failed++;
       }
     }
 
-    const totalTests = this.pathsToTest.length;
     let severity: 'Healthy' | 'Degraded' | 'Critical' = 'Healthy';
-    if (failed > 0) severity = failed > 2 ? 'Critical' : 'Degraded';
+    const criticalFails = findings.filter(f => f.status === 'CRITICAL').length;
+    if (failed > 0) severity = 'Degraded';
+    if (criticalFails > 0) severity = 'Critical';
+
+    const passRatio = totalChecks > 0 ? passed / totalChecks : 0;
+    let grade: 'A' | 'B' | 'C' | 'F' = 'F';
+    if (passRatio >= 0.9) grade = 'A';
+    else if (passRatio >= 0.8) grade = 'B';
+    else if (passRatio >= 0.7) grade = 'C';
 
     const reportData: ReportData = {
       projectName: 'CoderNest QA Core',
       timestamp: new Date().toLocaleString(),
-      totalTests,
+      totalTests: totalChecks,
       passed,
       failed,
       severity,
+      grade,
       findings,
       markdownResult: ''
     };
