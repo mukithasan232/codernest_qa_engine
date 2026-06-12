@@ -30,8 +30,8 @@ export default function Dashboard() {
 
     startTransition(async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-        const res = await fetch(`${apiUrl}/api/v1/scan`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1/scan';
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
