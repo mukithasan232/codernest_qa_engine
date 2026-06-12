@@ -46,7 +46,8 @@ describe('GET /health — Health Check', () => {
   it('should return HTTP 404 for an unknown route', async () => {
     const res = await agent.get('/nonexistent-route-xyz').set(headers);
     expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty('status', 'error');
+    expect(res.body).toHaveProperty('error', 'Endpoint not found');
+    expect(res.body).toHaveProperty('path');
   });
 });
 
