@@ -12,6 +12,7 @@
     "test:watch": "jest --config config/jest.config.ts --watch",
     "test:ci": "jest --config config/jest.config.ts --ci --forceExit",
     "engine:run": "ts-node -r tsconfig-paths/register core/engine.ts",
+    "start:engine": "ts-node -r tsconfig-paths/register core/engine.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
