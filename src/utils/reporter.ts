@@ -64,6 +64,11 @@ export const Reporter = {
    * Handles read-only file systems gracefully (e.g., Vercel serverless).
    */
   saveReportToFile(markdownString: string): string | null {
+    if (process.env.VERCEL === '1') {
+      Logger.warn('[WARN] Running in Vercel Serverless Environment. Bypassing local file write.');
+      return null;
+    }
+
     const timestamp = Math.floor(Date.now() / 1000);
     const fileName = `codernest-audit-${timestamp}.md`;
     const reportsDir = path.resolve(process.cwd(), 'output', 'reports');
