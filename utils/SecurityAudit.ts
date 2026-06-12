@@ -6,7 +6,7 @@
 import * as https from 'https';
 import * as http  from 'http';
 import type { SecurityReport, SecurityHeader, IssueSeverity } from '../types/SmartReport';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 // ── Required security headers and their expected values ────────────────────
 

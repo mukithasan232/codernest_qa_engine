@@ -7,8 +7,8 @@
 import { runCLI } from 'jest';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
-import { Logger } from '@core/logger';
-import { CoreUtils } from '@core/CoreUtils';
+import { Logger } from './logger';
+import { CoreUtils } from './CoreUtils';
 import type { TestSuiteResult, TestCaseResult, TestStatus } from '../types/TestResult';
 
 // ─── Path Constants ────────────────────────────────────────────────────────

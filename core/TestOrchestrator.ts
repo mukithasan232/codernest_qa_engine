@@ -3,14 +3,14 @@
  * updates the live scan progress state.
  */
 
-import { SmartCrawler }        from '@core/SmartCrawler';
+import { SmartCrawler }        from './SmartCrawler';
 import { runLinkChecker }       from '../utils/LinkChecker';
 import { runA11yScan }          from '../utils/A11yScanner';
 import { runPerfAnalysis }      from '../utils/PerfAnalyzer';
 import { runSecurityAudit }     from '../utils/SecurityAudit';
 import { captureScreenshots }   from '../utils/ScreenshotService';
 import { runFormAnalysis }      from '../utils/FormTester';
-import { Logger }               from '@core/logger';
+import { Logger }               from './logger';
 import type { SmartReport, ScanProgress } from '../types/SmartReport';
 
 // ── Singleton scan state shared with Express ────────────────────────────────

@@ -5,7 +5,7 @@
 
 import * as dotenv from 'dotenv';
 import app from './app';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 dotenv.config();
 

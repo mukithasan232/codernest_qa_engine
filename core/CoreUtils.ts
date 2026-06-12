@@ -6,7 +6,7 @@
 
 import * as dotenv from 'dotenv';
 import supertest from 'supertest';
-import { Logger } from '@core/logger';
+import { Logger } from './logger';
 
 dotenv.config();
 

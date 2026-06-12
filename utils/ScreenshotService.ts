@@ -7,7 +7,7 @@ import * as fs   from 'fs';
 import * as path from 'path';
 import { chromium } from 'playwright';
 import type { ScreenshotRecord } from '../types/SmartReport';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 800  },

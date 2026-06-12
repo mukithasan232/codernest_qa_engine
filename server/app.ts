@@ -9,8 +9,8 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import * as fs   from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
-import { Logger }       from '@core/logger';
-import { runSmartScan, scanState } from '@core/TestOrchestrator';
+import { Logger }       from '../core/logger';
+import { runSmartScan, scanState } from '../core/TestOrchestrator';
 
 const app: Application = express();
 

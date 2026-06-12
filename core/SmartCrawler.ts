@@ -5,7 +5,7 @@
  */
 
 import { chromium, Browser, Page } from 'playwright';
-import { Logger } from '@core/logger';
+import { Logger } from './logger';
 import type { DiscoveredPage, DiscoveredForm } from '../types/SmartReport';
 
 export class SmartCrawler {

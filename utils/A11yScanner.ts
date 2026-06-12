@@ -6,7 +6,7 @@
 import { chromium } from 'playwright';
 import AxeBuilder   from '@axe-core/playwright';
 import type { AccessibilityReport, A11yViolation } from '../types/SmartReport';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 /**
  * Scans all given URLs for WCAG 2.1 accessibility violations using axe-core.

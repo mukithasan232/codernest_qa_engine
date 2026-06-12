@@ -10,13 +10,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@core/*":  ["./core/*"],
-      "@tests/*": ["./tests/*"],
-      "@types/*": ["./types/*"],
-      "@utils/*": ["./utils/*"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "core/**/*",

@@ -4,15 +4,15 @@
   "description": "CoderNest QA Core — Professional-grade automated testing engine using TypeScript, Jest, Supertest & Firebase.",
   "main": "core/engine.ts",
   "scripts": {
-    "dev": "nodemon --watch server --watch core --ext ts --exec 'ts-node -r tsconfig-paths/register server/server.ts'",
+    "dev": "nodemon --watch server --watch core --ext ts --exec 'ts-node server/server.ts'",
     "build": "tsc --outDir dist",
     "test": "jest --config config/jest.config.ts",
     "test:api": "jest --config config/jest.config.ts --testPathPattern=tests/api",
     "test:int": "jest --config config/jest.config.ts --testPathPattern=tests/integration",
     "test:watch": "jest --config config/jest.config.ts --watch",
     "test:ci": "jest --config config/jest.config.ts --ci --forceExit",
-    "engine:run": "ts-node -r tsconfig-paths/register core/engine.ts",
-    "start:engine": "ts-node -r tsconfig-paths/register core/engine.ts",
+    "engine:run": "ts-node core/engine.ts",
+    "start:engine": "ts-node core/engine.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

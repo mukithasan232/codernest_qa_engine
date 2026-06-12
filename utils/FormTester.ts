@@ -5,7 +5,7 @@
  */
 
 import type { FormReport, DiscoveredPage } from '../types/SmartReport';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 /**
  * Analyses form quality across all discovered pages.

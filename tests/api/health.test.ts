@@ -9,8 +9,8 @@
 
 import supertest from 'supertest';
 import app from '../../server/app';
-import { CoreUtils } from '@core/CoreUtils';
-import { Logger } from '@core/logger';
+import { CoreUtils } from '../../core/CoreUtils';
+import { Logger } from '../../core/logger';
 
 // ─── Test Suite ────────────────────────────────────────────────────────────
 

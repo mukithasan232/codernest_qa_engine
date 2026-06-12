@@ -21,7 +21,7 @@ import type {
   LayoutShift,
   WebVitalRating,
 } from '../types/SmartReport';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 // ─── Core Web Vitals Thresholds (Google 2024) ─────────────────────────────
 

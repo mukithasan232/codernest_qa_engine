@@ -6,7 +6,7 @@
 import * as https from 'https';
 import * as http  from 'http';
 import type { LinkIssue, NavigationReport } from '../types/SmartReport';
-import { Logger } from '@core/logger';
+import { Logger } from '../core/logger';
 
 /**
  * Checks the HTTP status of a URL with a timeout.
