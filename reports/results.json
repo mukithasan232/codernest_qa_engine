@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-12T21:16:06.590Z",
+  "timestamp": "2026-06-12T22:27:42.456Z",
   "success": false,
   "total": 11,
   "passed": 11,
@@ -15,25 +15,25 @@
         {
           "name": "GET /health — Health Check should return HTTP 200",
           "status": "passed",
-          "durationMs": 35,
+          "durationMs": 25,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check response body should have status: \"ok\"",
           "status": "passed",
-          "durationMs": 6,
+          "durationMs": 13,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check response body should include service name and version",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check Content-Type should be application/json",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         },
         {
@@ -45,37 +45,37 @@
         {
           "name": "GET /api/v1/status — Extended Status should return HTTP 200",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         },
         {
           "name": "GET /api/v1/status — Extended Status response body should have status: \"operational\"",
           "status": "passed",
-          "durationMs": 3,
+          "durationMs": 2,
           "errorMessage": null
         },
         {
           "name": "GET /api/v1/status — Extended Status response body should include environment field",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 2,
           "errorMessage": null
         },
         {
           "name": "POST /api/v1/echo — Echo Endpoint should return HTTP 200",
           "status": "passed",
-          "durationMs": 15,
+          "durationMs": 13,
           "errorMessage": null
         },
         {
           "name": "POST /api/v1/echo — Echo Endpoint should echo the request body under the \"received\" key",
           "status": "passed",
-          "durationMs": 7,
+          "durationMs": 3,
           "errorMessage": null
         },
         {
           "name": "POST /api/v1/echo — Echo Endpoint should include an \"echoedAt\" ISO timestamp",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         }
       ]
