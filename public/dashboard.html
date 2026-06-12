@@ -527,7 +527,19 @@ function renderSmartReport(r) {
 
   document.getElementById('score-hero').classList.add('show');
 
-  // Report cards
+  // ── Report Cards ─────────────────────────────────────────────────────────
+  const perfPages = r.performance?.pages ?? [];
+  const avgLcp    = perfPages.length ? Math.round(perfPages.reduce((s,p)=>s+(p.paint?.lcp??0),0)/perfPages.length) : 0;
+  const avgCls    = perfPages.length ? (perfPages.reduce((s,p)=>s+(p.layoutShift?.cls??0),0)/perfPages.length).toFixed(3) : '—';
+  const avgFcp    = perfPages.length ? Math.round(perfPages.reduce((s,p)=>s+(p.paint?.fcp??0),0)/perfPages.length) : 0;
+  const avgTtfb   = perfPages.length ? Math.round(perfPages.reduce((s,p)=>s+(p.navigation?.ttfb??0),0)/perfPages.length) : 0;
+  const slowPages = perfPages.filter(p=>p.rating==='slow').length;
+
+  const vitRating = v => v==='good'?'🟢':v==='needs-improvement'?'🟡':'🔴';
+  const lcpRating = perfPages.length ? vitRating(perfPages[0]?.paint?.lcpRating) : '';
+  const clsRating = perfPages.length ? vitRating(perfPages[0]?.layoutShift?.clsRating) : '';
+  const fcpRating = perfPages.length ? vitRating(perfPages[0]?.paint?.fcpRating) : '';
+
   const cards = [
     { icon:'🔗', title:'Navigation',     score:r.navigation?.score,     items:[
       `${r.navigation?.totalLinks} links checked`,
@@ -538,8 +550,10 @@ function renderSmartReport(r) {
       `${r.accessibility?.criticalCount} critical`,
     ]},
     { icon:'⚡', title:'Performance',   score:r.performance?.score,    items:[
-      `Avg load: ${r.performance?.avgLoad}ms`,
-      `${r.performance?.pages?.filter(p=>p.rating==='slow').length ?? 0} slow pages`,
+      `${lcpRating} LCP: ${avgLcp}ms`,
+      `${clsRating} CLS: ${avgCls}`,
+      `${fcpRating} FCP: ${avgFcp}ms`,
+      `TTFB: ${avgTtfb}ms · ${slowPages} slow page(s)`,
     ]},
     { icon:'🔒', title:'Security',      score:r.security?.score,       items:[
       `HTTPS: ${r.security?.https ? '✅' : '❌'}`,
@@ -566,7 +580,7 @@ function renderSmartReport(r) {
   }).join('');
   grid.style.display = 'grid';
 
-  // Issues list
+  // ── Issues List ───────────────────────────────────────────────────────────
   const issues = [];
   (r.navigation?.brokenLinks || []).forEach(l =>
     issues.push({ sev: l.severity, title: `Broken link (HTTP ${l.statusCode})`, sub: l.url }));
@@ -575,8 +589,19 @@ function renderSmartReport(r) {
       title: v.description, sub: `${v.id} · ${v.count} element(s) · ${v.page}` }));
   (r.security?.headers || []).filter(h => !h.present).forEach(h =>
     issues.push({ sev: h.severity, title: `Missing header: ${h.name}`, sub: '' }));
-  (r.performance?.pages || []).filter(p => p.rating === 'slow').forEach(p =>
-    issues.push({ sev: 'warning', title: `Slow page load: ${p.loaded}ms`, sub: p.url }));
+  // Core Web Vitals issues
+  perfPages.forEach(p => {
+    if (p.paint?.lcpRating === 'poor')
+      issues.push({ sev:'critical', title:`Poor LCP: ${p.paint.lcp}ms (threshold: 4000ms)`, sub: p.url });
+    else if (p.paint?.lcpRating === 'needs-improvement')
+      issues.push({ sev:'warning', title:`LCP needs improvement: ${p.paint.lcp}ms`, sub: p.url });
+    if (p.layoutShift?.clsRating === 'poor')
+      issues.push({ sev:'critical', title:`Poor CLS: ${p.layoutShift.cls} (threshold: 0.25)`, sub: p.url });
+    else if (p.layoutShift?.clsRating === 'needs-improvement')
+      issues.push({ sev:'warning', title:`CLS needs improvement: ${p.layoutShift.cls}`, sub: p.url });
+    if (p.paint?.fcpRating === 'poor')
+      issues.push({ sev:'warning', title:`Poor FCP: ${p.paint.fcp}ms (threshold: 3000ms)`, sub: p.url });
+  });
 
   if (issues.length) {
     document.getElementById('issues-list').innerHTML = issues.map(i =>

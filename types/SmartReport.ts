@@ -3,8 +3,11 @@
  * Every module produces data conforming to these types.
  */
 
-export type IssueSeverity = 'critical' | 'warning' | 'info' | 'pass';
-export type ScanStatus    = 'idle' | 'crawling' | 'testing' | 'complete' | 'error';
+export type IssueSeverity   = 'critical' | 'warning' | 'info' | 'pass';
+export type ScanStatus      = 'idle' | 'crawling' | 'testing' | 'complete' | 'error';
+
+/** Google Core Web Vitals rating scale. */
+export type WebVitalRating  = 'good' | 'needs-improvement' | 'poor';
 
 // ─── Crawled Page ──────────────────────────────────────────────────────────
 
@@ -59,18 +62,64 @@ export interface AccessibilityReport {
   readonly score:            number;
 }
 
-export interface PagePerf {
-  readonly url:              string;
+/** Precise timing breakdown from the Navigation Timing API. */
+export interface NavigationTiming {
+  /** DNS resolution duration in ms. */
+  readonly dnsLookup:        number;
+  /** TCP handshake duration in ms. */
+  readonly tcpConnection:    number;
+  /** Time To First Byte in ms. */
+  readonly ttfb:             number;
+  /** Server response download time in ms. */
+  readonly responseTime:     number;
+  /** Time until DOM is interactive in ms. */
+  readonly domInteractive:   number;
+  /** DOMContentLoaded event duration in ms. */
   readonly domContentLoaded: number;
-  readonly loaded:           number;
-  readonly firstByte:        number;
-  readonly rating:           'fast' | 'moderate' | 'slow';
+  /** Total page load time in ms. */
+  readonly totalLoad:        number;
+}
+
+/** Paint timing from the Paint Timing + LCP APIs. */
+export interface PaintMetrics {
+  /** First Contentful Paint in ms. */
+  readonly fcp:        number;
+  readonly fcpRating:  WebVitalRating;
+  /** Largest Contentful Paint in ms. */
+  readonly lcp:        number;
+  readonly lcpRating:  WebVitalRating;
+}
+
+/** Cumulative Layout Shift from the Layout Instability API. */
+export interface LayoutShift {
+  /** CLS score (dimensionless, lower is better). */
+  readonly cls:        number;
+  readonly clsRating:  WebVitalRating;
+}
+
+/** Full performance report for a single page. */
+export interface PagePerf {
+  readonly url:         string;
+  /** Detailed Navigation Timing breakdown. */
+  readonly navigation:  NavigationTiming;
+  /** FCP and LCP with Good/Needs-Improvement/Poor ratings. */
+  readonly paint:       PaintMetrics;
+  /** CLS with rating. */
+  readonly layoutShift: LayoutShift;
+  /** Overall page rating derived from Core Web Vitals. */
+  readonly rating:      'fast' | 'moderate' | 'slow';
+  /** @deprecated Use navigation.totalLoad. Kept for backward compatibility. */
+  readonly loaded:      number;
+  /** @deprecated Use navigation.ttfb. Kept for backward compatibility. */
+  readonly firstByte:   number;
+  /** @deprecated Use navigation.domContentLoaded. */
+  readonly domContentLoaded: number;
 }
 
 export interface PerformanceReport {
-  readonly pages:    readonly PagePerf[];
-  readonly avgLoad:  number;
-  readonly score:    number;
+  readonly pages:   readonly PagePerf[];
+  readonly avgLoad: number;
+  readonly score:   number;
 }
 
 export interface SecurityHeader {
