@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-12T20:39:31.133Z",
+  "timestamp": "2026-06-12T21:15:21.359Z",
   "success": false,
   "total": 11,
   "passed": 11,
@@ -15,13 +15,13 @@
         {
           "name": "GET /health — Health Check should return HTTP 200",
           "status": "passed",
-          "durationMs": 33,
+          "durationMs": 20,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check response body should have status: \"ok\"",
           "status": "passed",
-          "durationMs": 5,
+          "durationMs": 4,
           "errorMessage": null
         },
         {
@@ -33,19 +33,19 @@
         {
           "name": "GET /health — Health Check Content-Type should be application/json",
           "status": "passed",
-          "durationMs": 3,
+          "durationMs": 2,
           "errorMessage": null
         },
         {
           "name": "GET /health — Health Check should return HTTP 404 for an unknown route",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         },
         {
           "name": "GET /api/v1/status — Extended Status should return HTTP 200",
           "status": "passed",
-          "durationMs": 3,
+          "durationMs": 2,
           "errorMessage": null
         },
         {
@@ -57,19 +57,19 @@
         {
           "name": "GET /api/v1/status — Extended Status response body should include environment field",
           "status": "passed",
-          "durationMs": 3,
+          "durationMs": 2,
           "errorMessage": null
         },
         {
           "name": "POST /api/v1/echo — Echo Endpoint should return HTTP 200",
           "status": "passed",
-          "durationMs": 13,
+          "durationMs": 12,
           "errorMessage": null
         },
         {
           "name": "POST /api/v1/echo — Echo Endpoint should echo the request body under the \"received\" key",
           "status": "passed",
-          "durationMs": 4,
+          "durationMs": 3,
           "errorMessage": null
         },
         {

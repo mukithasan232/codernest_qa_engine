@@ -4,7 +4,7 @@
  * configuration and ensuring all required env vars are present before tests start.
  */
 
-import * as dotenv from 'dotenv';
+import dotenv from 'dotenv';
 
 export default async function globalSetup(): Promise<void> {
   // Load .env into process.env for all test processes
