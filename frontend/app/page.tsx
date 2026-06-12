@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
   const [isPending, startTransition] = useTransition();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [report, setReport] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,8 +60,15 @@ export default function Dashboard() {
     const element = document.getElementById('report-container');
     if (!element) return;
     
+    setIsGeneratingPdf(true);
     try {
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#0a0a0a' });
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false,
+        allowTaint: true,
+        backgroundColor: '#0a0a0a' 
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
@@ -71,6 +79,9 @@ export default function Dashboard() {
       pdf.save(`CoderNest-Audit-${new Date().getTime()}.pdf`);
     } catch (err) {
       console.error('Failed to generate PDF', err);
+      alert('Failed to generate PDF report. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -185,9 +196,19 @@ export default function Dashboard() {
               
               <button
                 onClick={downloadPDF}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-lg transition-all flex items-center gap-2 border border-neutral-700"
+                disabled={isGeneratingPdf}
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-200 text-sm font-medium rounded-lg transition-all flex items-center gap-2 border border-neutral-700"
               >
-                <FileDown className="w-4 h-4" /> Download PDF Report
+                {isGeneratingPdf ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-neutral-400 border-t-neutral-100 rounded-full animate-spin" />
+                    Generating PDF...
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4" /> Download PDF Report
+                  </>
+                )}
               </button>
             </div>
             
