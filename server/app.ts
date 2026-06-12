@@ -27,6 +27,9 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Favicon Bypass (Required for Vercel Serverless)
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // ── State (Unit Tests) ──────────────────────────────────────────────────────
 let isUnitRunning = false;
 const RESULTS_PATH = path.resolve(process.cwd(), 'reports', 'results.json');
@@ -124,13 +127,13 @@ app.get('/dashboard', (_req, res) => {
 app.get('/', (_req, res) => { res.redirect('/dashboard'); });
 
 // ── 404 / Error ─────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ status: 'error', message: 'Route not found.' });
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl });
 });
 
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  Logger.error('Unhandled server error.', err);
-  res.status(500).json({ status: 'error', message: 'Internal server error.' });
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('[ERROR]', err.message);
+  res.status(500).json({ error: 'Internal Server Error', details: err.message });
 });
 
 export default app;

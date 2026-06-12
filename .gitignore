@@ -3,3 +3,5 @@ reports/coverage/
 reports/test-report.html
 .env
 .DS_Store
+.vercel
+.env*
