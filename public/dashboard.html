@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoderNest QA Core — Dashboard</title>
+  <meta name="description" content="Professional test results dashboard for CoderNest QA Core engine." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #07071a;
+      --surface:    rgba(255,255,255,0.04);
+      --border:     rgba(255,255,255,0.08);
+      --purple:     #8b5cf6;
+      --purple-dim: rgba(139,92,246,0.15);
+      --blue:       #3b82f6;
+      --green:      #10b981;
+      --green-dim:  rgba(16,185,129,0.12);
+      --red:        #ef4444;
+      --red-dim:    rgba(239,68,68,0.12);
+      --yellow:     #f59e0b;
+      --yellow-dim: rgba(245,158,11,0.12);
+      --text:       #e2e8f0;
+      --muted:      #64748b;
+      --card-blur:  blur(16px);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(139,92,246,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(59,130,246,0.1) 0%, transparent 60%);
+    }
+
+    /* ── Layout ── */
+    .wrapper { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,7,26,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .header-inner {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo-text p  { font-size: 11px; color: var(--muted); }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .last-run { font-size: 12px; color: var(--muted); }
+    #last-run-time { color: var(--text); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 18px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; font-family: 'Inter', sans-serif;
+      cursor: pointer; border: none; transition: all .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      color: #fff;
+      box-shadow: 0 0 20px rgba(139,92,246,0.35);
+    }
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 0 30px rgba(139,92,246,0.55);
+      transform: translateY(-1px);
+    }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .spinner {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .running .spinner { display: block; }
+    .running .btn-icon { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Main ── */
+    main { padding: 32px 0 60px; }
+
+    /* ── Status Banner ── */
+    .status-banner {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px; border-radius: 14px; margin-bottom: 28px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: var(--card-blur);
+      transition: all .4s;
+    }
+    .status-banner.pass  { border-color: rgba(16,185,129,0.4); background: var(--green-dim); }
+    .status-banner.fail  { border-color: rgba(239,68,68,0.4);  background: var(--red-dim); }
+    .status-banner.idle  { border-color: var(--border); }
+    .status-icon { font-size: 26px; line-height: 1; }
+    .status-label { font-size: 18px; font-weight: 700; }
+    .status-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Stat Cards ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      backdrop-filter: var(--card-blur);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+    .stat-value { font-size: 36px; font-weight: 800; margin: 8px 0 4px; line-height: 1; }
+    .stat-sub   { font-size: 12px; color: var(--muted); }
+    .stat-card.total  .stat-value { color: var(--text); }
+    .stat-card.passed .stat-value { color: var(--green); }
+    .stat-card.failed .stat-value { color: var(--red); }
+    .stat-card.dur    .stat-value { color: var(--purple); font-size: 26px; }
+
+    /* ── Content Grid ── */
+    .content-grid {
+      display: grid; grid-template-columns: 280px 1fr; gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+
+    /* ── Donut Chart ── */
+    .donut-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      backdrop-filter: var(--card-blur);
+    }
+    .donut-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 20px; text-transform: uppercase; letter-spacing: .06em; }
+    .donut-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 20px; }
+    .donut-wrap svg { transform: rotate(-90deg); }
+    .donut-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 16; }
+    .donut-pass { fill: none; stroke: var(--green); stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+    .donut-fail { fill: none; stroke: var(--red); stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+    .donut-center {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .donut-pct { font-size: 28px; font-weight: 800; line-height: 1; }
+    .donut-pct-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Test Suites ── */
+    .suites-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: var(--card-blur);
+      overflow: hidden;
+    }
+    .suites-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .suites-header-title { font-size: 14px; font-weight: 700; }
+    .suite-count { font-size: 12px; color: var(--muted); }
+
+    .suite {
+      border-bottom: 1px solid var(--border);
+    }
+    .suite:last-child { border-bottom: none; }
+
+    .suite-header {
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .suite-header:hover { background: rgba(255,255,255,0.03); }
+
+    .suite-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+    }
+    .badge-pass { background: var(--green-dim);   color: var(--green); }
+    .badge-fail { background: var(--red-dim);     color: var(--red); }
+    .badge-idle { background: var(--yellow-dim);  color: var(--yellow); }
+
+    .suite-file {
+      flex: 1; font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .suite-counts { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .suite-chevron { color: var(--muted); transition: transform .2s; font-size: 12px; }
+    .suite.open .suite-chevron { transform: rotate(90deg); }
+
+    .test-list { display: none; }
+    .suite.open .test-list { display: block; }
+
+    .test-case {
+      padding: 10px 20px 10px 52px;
+      display: flex; align-items: flex-start; gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      transition: background .15s;
+    }
+    .test-case:hover { background: rgba(255,255,255,0.02); }
+    .test-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .test-name { font-size: 13px; flex: 1; line-height: 1.4; }
+    .test-dur  { font-size: 11px; color: var(--muted); white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
+    .test-error {
+      margin-top: 6px; padding: 8px 10px;
+      background: rgba(239,68,68,0.08); border-left: 2px solid var(--red);
+      border-radius: 4px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      color: #fca5a5; white-space: pre-wrap; word-break: break-word;
+    }
+    .test-body { flex: 1; }
+
+    /* ── Empty / Loading States ── */
+    .empty-state {
+      padding: 60px 20px; text-align: center; color: var(--muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      padding: 12px 18px; border-radius: 10px;
+      font-size: 13px; font-weight: 500;
+      background: rgba(30,30,60,0.95);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-color: rgba(16,185,129,0.5); color: var(--green); }
+    #toast.error   { border-color: rgba(239,68,68,0.5);  color: var(--red); }
+
+    /* ── Running pulse ── */
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+    .pulse { animation: pulse 1.5s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="wrapper">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">🧪</div>
+        <div class="logo-text">
+          <h1>CoderNest QA Core</h1>
+          <p>Automated Testing Dashboard</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="last-run">Last run: <span id="last-run-time">—</span></div>
+        <button class="btn btn-primary" id="run-btn" onclick="runTests()">
+          <div class="spinner"></div>
+          <span class="btn-icon">▶</span>
+          <span id="run-label">Run Tests</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main ─────────────────────────────────────────────────────────────── -->
+<main>
+  <div class="wrapper">
+
+    <!-- Status Banner -->
+    <div class="status-banner idle" id="status-banner">
+      <div class="status-icon" id="status-icon">🔵</div>
+      <div>
+        <div class="status-label" id="status-label">Waiting for results</div>
+        <div class="status-sub"  id="status-sub">Click "Run Tests" to start the test engine.</div>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-label">Total Tests</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">across all suites</div>
+      </div>
+      <div class="stat-card passed">
+        <div class="stat-label">✅ Passed</div>
+        <div class="stat-value" id="stat-passed">—</div>
+        <div class="stat-sub" id="stat-pass-pct">—</div>
+      </div>
+      <div class="stat-card failed">
+        <div class="stat-label">❌ Failed</div>
+        <div class="stat-value" id="stat-failed">—</div>
+        <div class="stat-sub" id="stat-skipped">— skipped</div>
+      </div>
+      <div class="stat-card dur">
+        <div class="stat-label">⏱ Duration</div>
+        <div class="stat-value" id="stat-dur">—</div>
+        <div class="stat-sub" id="stat-env">—</div>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+
+      <!-- Donut Chart -->
+      <div class="donut-card">
+        <div class="donut-title">Pass Rate</div>
+        <div class="donut-wrap">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle class="donut-bg"   cx="80" cy="80" r="64" />
+            <circle class="donut-fail" cx="80" cy="80" r="64" id="donut-fail-arc"
+                    stroke-dasharray="0 402" />
+            <circle class="donut-pass" cx="80" cy="80" r="64" id="donut-pass-arc"
+                    stroke-dasharray="0 402" />
+          </svg>
+          <div class="donut-center">
+            <div class="donut-pct" id="donut-pct">—</div>
+            <div class="donut-pct-label">pass rate</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--green)"></div>
+            <span id="leg-pass">Passed: —</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--red)"></div>
+            <span id="leg-fail">Failed: —</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--yellow)"></div>
+            <span id="leg-skip">Skipped: —</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Suites -->
+      <div class="suites-card">
+        <div class="suites-header">
+          <div class="suites-header-title">Test Suites</div>
+          <div class="suite-count" id="suite-count">—</div>
+        </div>
+        <div id="suites-list">
+          <div class="empty-state">
+            <div class="empty-icon">🧬</div>
+            <div class="empty-title">No results yet</div>
+            <div class="empty-sub">Run the test suite to see results here.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+  /* ── State ─────────────────────────────────────────────────────────────── */
+  let pollInterval  = null;
+  let lastTimestamp = null;
+  let isRunning     = false;
+
+  const CIRC = 2 * Math.PI * 64; // circumference
+
+  /* ── Boot ───────────────────────────────────────────────────────────────── */
+  fetchResults();
+  pollInterval = setInterval(fetchResults, 3000);
+
+  /* ── Fetch Results ──────────────────────────────────────────────────────── */
+  async function fetchResults() {
+    try {
+      const res  = await fetch('/api/v1/results');
+      const json = await res.json();
+
+      const wasRunning = isRunning;
+      isRunning = json.isRunning;
+      syncRunButton();
+
+      if (!json.exists) return;
+
+      const data = json.data;
+      if (data.timestamp === lastTimestamp && wasRunning === isRunning) return;
+
+      lastTimestamp = data.timestamp;
+      renderDashboard(data);
+
+      if (wasRunning && !isRunning) {
+        toast(data.success ? '✅ Test run completed successfully!' : '❌ Test run finished with failures.', data.success ? 'success' : 'error');
+      }
+    } catch (e) {
+      console.warn('Failed to fetch results:', e);
+    }
+  }
+
+  /* ── Render Dashboard ───────────────────────────────────────────────────── */
+  function renderDashboard(data) {
+    const { total, passed, failed, skipped, timestamp, success, suites } = data;
+    const pct = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+    // Timestamp
+    document.getElementById('last-run-time').textContent =
+      new Date(timestamp).toLocaleString();
+
+    // Status Banner
+    const banner  = document.getElementById('status-banner');
+    const icon    = document.getElementById('status-icon');
+    const label   = document.getElementById('status-label');
+    const sub     = document.getElementById('status-sub');
+
+    banner.className = 'status-banner ' + (success ? 'pass' : 'fail');
+    icon.textContent  = success ? '✅' : '❌';
+    label.textContent = success ? 'All tests passed' : `${failed} test${failed !== 1 ? 's' : ''} failed`;
+    sub.textContent   = `${passed} passed · ${failed} failed · ${skipped} skipped · ${total} total`;
+
+    // Stat Cards
+    animateNumber('stat-total',  total);
+    animateNumber('stat-passed', passed);
+    animateNumber('stat-failed', failed);
+
+    document.getElementById('stat-pass-pct').textContent = pct + '% pass rate';
+    document.getElementById('stat-skipped').textContent  = skipped + ' skipped';
+    document.getElementById('stat-dur').textContent      = '—';
+    document.getElementById('stat-env').textContent      = 'development';
+
+    // Donut
+    const passArc = CIRC * (passed / Math.max(total, 1));
+    const failArc = CIRC * (failed / Math.max(total, 1));
+    const skipArc = CIRC * (skipped / Math.max(total, 1));
+
+    document.getElementById('donut-pass-arc').style.strokeDasharray =
+      `${passArc} ${CIRC - passArc}`;
+    document.getElementById('donut-fail-arc').style.strokeDasharray =
+      `${failArc} ${CIRC - failArc}`;
+    document.getElementById('donut-fail-arc').style.strokeDashoffset =
+      -passArc;
+
+    document.getElementById('donut-pct').textContent     = pct + '%';
+    document.getElementById('donut-pct').style.color     = pct === 100 ? 'var(--green)' : pct > 50 ? 'var(--yellow)' : 'var(--red)';
+    document.getElementById('leg-pass').textContent  = `Passed: ${passed}`;
+    document.getElementById('leg-fail').textContent  = `Failed: ${failed}`;
+    document.getElementById('leg-skip').textContent  = `Skipped: ${skipped}`;
+
+    // Suite count
+    document.getElementById('suite-count').textContent =
+      `${(suites || []).length} suite${(suites||[]).length !== 1 ? 's' : ''}`;
+
+    // Suites list
+    renderSuites(suites || []);
+  }
+
+  function renderSuites(suites) {
+    const container = document.getElementById('suites-list');
+    if (!suites.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-title">No suites found</div></div>';
+      return;
+    }
+
+    container.innerHTML = suites.map((suite, si) => {
+      const ok = suite.failed === 0;
+      const badge = `<span class="suite-badge ${ok ? 'badge-pass' : 'badge-fail'}">${ok ? 'PASS' : 'FAIL'}</span>`;
+      const tests = (suite.tests || []).map(t => {
+        const icon  = t.status === 'passed' ? '✓' : t.status === 'failed' ? '✕' : '○';
+        const color = t.status === 'passed' ? 'var(--green)' : t.status === 'failed' ? 'var(--red)' : 'var(--yellow)';
+        const dur   = t.durationMs ? `${t.durationMs}ms` : '';
+        const err   = t.errorMessage ? `<div class="test-error">${escHtml(t.errorMessage)}</div>` : '';
+        return `
+          <div class="test-case">
+            <div class="test-icon" style="color:${color}">${icon}</div>
+            <div class="test-body">
+              <div class="test-name">${escHtml(t.name)}</div>
+              ${err}
+            </div>
+            <div class="test-dur">${dur}</div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="suite" id="suite-${si}">
+          <div class="suite-header" onclick="toggleSuite(${si})">
+            ${badge}
+            <div class="suite-file">${escHtml(suite.file)}</div>
+            <div class="suite-counts">${suite.passed}✓ ${suite.failed}✕</div>
+            <div class="suite-chevron">▶</div>
+          </div>
+          <div class="test-list">${tests}</div>
+        </div>`;
+    }).join('');
+
+    // Auto-open failing suites
+    suites.forEach((s, i) => { if (s.failed > 0) toggleSuite(i); });
+  }
+
+  function toggleSuite(i) {
+    document.getElementById('suite-' + i)?.classList.toggle('open');
+  }
+
+  /* ── Run Tests ──────────────────────────────────────────────────────────── */
+  async function runTests() {
+    if (isRunning) return;
+    try {
+      const res  = await fetch('/api/v1/run-tests', { method: 'POST' });
+      const json = await res.json();
+      if (res.status === 409) { toast('⏳ A test run is already in progress.', 'error'); return; }
+      isRunning = true;
+      syncRunButton();
+      updateBannerRunning();
+      toast('🚀 Test run started — results will update automatically.', 'success');
+    } catch (e) {
+      toast('❌ Failed to start test run.', 'error');
+    }
+  }
+
+  function syncRunButton() {
+    const btn   = document.getElementById('run-btn');
+    const label = document.getElementById('run-label');
+    btn.disabled = isRunning;
+    label.textContent = isRunning ? 'Running…' : 'Run Tests';
+    btn.classList.toggle('running', isRunning);
+  }
+
+  function updateBannerRunning() {
+    const banner = document.getElementById('status-banner');
+    const icon   = document.getElementById('status-icon');
+    const label  = document.getElementById('status-label');
+    const sub    = document.getElementById('status-sub');
+    banner.className = 'status-banner idle';
+    icon.textContent  = '⏳';
+    label.innerHTML   = '<span class="pulse">Running tests…</span>';
+    sub.textContent   = 'This may take a few seconds. Results will appear automatically.';
+  }
+
+  /* ── Helpers ────────────────────────────────────────────────────────────── */
+  function animateNumber(id, target) {
+    const el  = document.getElementById(id);
+    const cur = parseInt(el.textContent) || 0;
+    const dur = 600;
+    const start = performance.now();
+    const step = (now) => {
+      const p = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(cur + (target - cur) * ease);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  let toastTimer = null;
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className   = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+  }
+</script>
+</body>
+</html>

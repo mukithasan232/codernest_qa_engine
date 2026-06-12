@@ -1,65 +1,58 @@
 /**
- * @fileoverview Central QA Engine for the CoderNest QA Core project.
- * Programmatically triggers Jest test suites and forwards aggregated results
- * to Firebase Firestore via `firebaseService.ts`.
+ * @fileoverview Core QA Engine — test runner.
+ * Programmatically triggers Jest test suites.
+ * Firebase reporting removed; results are logged to console and CI artifacts.
  */
 
 import { runCLI } from 'jest';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { Logger } from '@core/logger';
-import { logTestResult } from '@core/firebaseService';
 import { CoreUtils } from '@core/CoreUtils';
 import type { TestSuiteResult, TestCaseResult, TestStatus } from '../types/TestResult';
 
 // ─── Path Constants ────────────────────────────────────────────────────────
 
 const PROJECT_ROOT = path.resolve(__dirname, '../');
-const JEST_CONFIG   = path.resolve(__dirname, '../config/jest.config.ts');
+const JEST_CONFIG  = path.resolve(__dirname, '../config/jest.config.ts');
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Result Mapper ─────────────────────────────────────────────────────────
 
 /**
  * Maps Jest's AggregatedResult into the engine's typed {@link TestSuiteResult}.
- *
- * @param jestResult - The raw result object returned by Jest's `runCLI`.
- * @param runId - The UUID generated for this specific run.
- * @returns A fully-typed {@link TestSuiteResult}.
  */
-function mapJestResultToSuiteResult(
-  // Using a specific type from Jest's API
+function mapJestResult(
   jestResult: Awaited<ReturnType<typeof runCLI>>['results'],
-  runId: string
+  runId: string,
+  durationMs: number
 ): TestSuiteResult {
   const testCases: TestCaseResult[] = [];
 
   for (const suite of jestResult.testResults) {
-    for (const testCase of suite.testResults) {
+    for (const tc of suite.testResults) {
       const status: TestStatus =
-        testCase.status === 'passed'  ? 'passed'  :
-        testCase.status === 'failed'  ? 'failed'  :
-        testCase.status === 'pending' ? 'pending' : 'skipped';
+        tc.status === 'passed'  ? 'passed'  :
+        tc.status === 'failed'  ? 'failed'  :
+        tc.status === 'pending' ? 'pending' : 'skipped';
 
       testCases.push({
-        testName:    testCase.fullName,
+        testName:     tc.fullName,
         status,
-        durationMs:  testCase.duration ?? 0,
-        errorMessage: testCase.failureMessages.join('\n') || undefined,
+        durationMs:   tc.duration ?? 0,
+        errorMessage: tc.failureMessages.join('\n') || undefined,
       });
     }
   }
 
-  const overallStatus: TestStatus = jestResult.success ? 'passed' : 'failed';
-
   return {
     runId,
     suiteName:       'CoderNest QA Core — Full Suite',
-    status:          overallStatus,
+    status:          jestResult.success ? 'passed' : 'failed',
     totalTests:      jestResult.numTotalTests,
     passedTests:     jestResult.numPassedTests,
     failedTests:     jestResult.numFailedTests,
     skippedTests:    jestResult.numPendingTests + jestResult.numTodoTests,
-    totalDurationMs: Date.now(), // replaced below with accurate delta
+    totalDurationMs: durationMs,
     testCases,
     environment:     CoreUtils.getEnvironmentLabel(),
   };
@@ -68,20 +61,19 @@ function mapJestResultToSuiteResult(
 // ─── Engine Entry Point ────────────────────────────────────────────────────
 
 /**
- * Runs the full Jest test suite programmatically and logs the aggregated
- * results to Firestore. This is the single entry point for CI/CD pipelines.
+ * Runs the full Jest test suite programmatically.
+ * Results are logged to console and written to `reports/` by jest-html-reporter.
  *
  * @returns The typed {@link TestSuiteResult} of the completed run.
  */
 export async function runTests(): Promise<TestSuiteResult> {
-  const runId = randomUUID();
-  const startTime = Date.now();
+  const runId    = randomUUID();
+  const start    = Date.now();
 
   Logger.info(`══════════════════════════════════════════════════`);
   Logger.info(` CoderNest QA Core — Test Run Starting`);
-  Logger.info(` Run ID   : ${runId}`);
-  Logger.info(` Config   : ${JEST_CONFIG}`);
-  Logger.info(` Env      : ${CoreUtils.getEnvironmentLabel()}`);
+  Logger.info(` Run ID : ${runId}`);
+  Logger.info(` Env    : ${CoreUtils.getEnvironmentLabel()}`);
   Logger.info(`══════════════════════════════════════════════════`);
 
   const { results } = await runCLI(
@@ -89,39 +81,25 @@ export async function runTests(): Promise<TestSuiteResult> {
     [PROJECT_ROOT]
   );
 
-  const durationMs = Date.now() - startTime;
-  const suiteResult = mapJestResultToSuiteResult(results, runId);
+  const durationMs  = Date.now() - start;
+  const suiteResult = mapJestResult(results, runId, durationMs);
 
-  // Patch in the accurate total duration
-  const finalResult: TestSuiteResult = { ...suiteResult, totalDurationMs: durationMs };
-
-  if (finalResult.status === 'passed') {
-    Logger.success(`All ${finalResult.totalTests} tests passed in ${durationMs}ms.`);
+  if (suiteResult.status === 'passed') {
+    Logger.success(`${suiteResult.totalTests} tests passed in ${durationMs}ms.`);
   } else {
-    Logger.error(
-      `${finalResult.failedTests} of ${finalResult.totalTests} tests failed after ${durationMs}ms.`
-    );
+    Logger.error(`${suiteResult.failedTests}/${suiteResult.totalTests} tests failed after ${durationMs}ms.`);
   }
 
-  // Log to Firestore (non-blocking; failure is logged but doesn't fail the engine)
-  try {
-    await logTestResult(finalResult);
-  } catch {
-    Logger.warn('Firestore logging failed. Test results are still valid.');
-  }
-
-  return finalResult;
+  return suiteResult;
 }
 
 // ─── CLI Entrypoint ────────────────────────────────────────────────────────
 
 if (require.main === module) {
   runTests()
-    .then((result) => {
-      process.exit(result.status === 'passed' ? 0 : 1);
-    })
-    .catch((error: unknown) => {
-      Logger.error('Critical engine failure.', error);
+    .then((r) => process.exit(r.status === 'passed' ? 0 : 1))
+    .catch((err: unknown) => {
+      Logger.error('Critical engine failure.', err);
       process.exit(1);
     });
 }

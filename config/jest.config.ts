@@ -40,6 +40,7 @@ const config: Config = {
   // Reporters: 'default' for console + jest-html-reporter for client-facing HTML.
   reporters: [
     'default',
+    '<rootDir>/config/jsonReporter.ts',
     [
       'jest-html-reporter',
       {

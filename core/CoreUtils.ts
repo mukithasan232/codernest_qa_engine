@@ -17,29 +17,20 @@ export type EnvKey =
   | 'API_BASE_URL'
   | 'API_TOKEN'
   | 'NODE_ENV'
-  | 'GOOGLE_APPLICATION_CREDENTIALS';
+  | 'PORT';
 
 // ─── CoreUtils ─────────────────────────────────────────────────────────────
 
 /**
  * Centralized utility class for environment configuration and HTTP test helpers.
  * All methods are `static` — no instantiation required.
- *
- * @example
- * ```ts
- * import { CoreUtils } from '@core/CoreUtils';
- *
- * const headers = CoreUtils.getGlobalHeaders();
- * const agent   = CoreUtils.getSupertestAgent();
- * ```
  */
 export class CoreUtils {
   /**
    * Retrieves a required environment variable.
-   * Throws a descriptive error if the variable is absent, preventing
-   * silent misconfigurations from causing obscure test failures.
+   * Throws a descriptive error if the variable is absent.
    *
-   * @param key - A typed {@link EnvKey} to enforce valid variable names.
+   * @param key - A typed {@link EnvKey}.
    * @returns The string value of the environment variable.
    * @throws {Error} If the variable is not set.
    */
@@ -56,21 +47,19 @@ export class CoreUtils {
 
   /**
    * Returns a safe environment variable without throwing.
-   * Use this for optional variables that have fallback defaults.
    *
    * @param key - A typed {@link EnvKey}.
    * @param fallback - Default value returned if the variable is absent.
-   * @returns The variable value, or the fallback string.
    */
   static getEnvVarSafe(key: EnvKey, fallback: string): string {
     return process.env[key] ?? fallback;
   }
 
   /**
-   * Constructs the standard HTTP headers applied globally to all API requests.
-   * Automatically injects `Authorization` if `API_TOKEN` is present in env.
+   * Constructs standard HTTP headers for all API requests.
+   * Automatically injects `Authorization` if `API_TOKEN` is present.
    *
-   * @returns A strongly-typed `Record<string, string>` of HTTP headers.
+   * @returns A `Record<string, string>` of HTTP headers.
    */
   static getGlobalHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
@@ -88,19 +77,11 @@ export class CoreUtils {
   }
 
   /**
-   * Creates a pre-configured Supertest `SuperAgentTest` agent bound to
-   * the `API_BASE_URL` environment variable. Reuse this agent per test
-   * suite to share cookies/sessions across requests.
+   * Creates a Supertest agent bound to `API_BASE_URL`.
+   * Use this when testing against a live/staging URL rather than the app instance.
    *
-   * @returns A `SuperAgentTest` instance ready for HTTP assertions.
+   * @returns A Supertest agent instance.
    * @throws {Error} If `API_BASE_URL` is not defined.
-   *
-   * @example
-   * ```ts
-   * const agent = CoreUtils.getSupertestAgent();
-   * const res   = await agent.get('/health').set(CoreUtils.getGlobalHeaders());
-   * expect(res.status).toBe(200);
-   * ```
    */
   static getSupertestAgent(): ReturnType<typeof supertest.agent> {
     const baseUrl = this.getEnvVar('API_BASE_URL');
@@ -110,9 +91,8 @@ export class CoreUtils {
 
   /**
    * Returns the current runtime environment label.
-   * Used for tagging Firestore documents with the environment they ran in.
    *
-   * @returns e.g., `"ci"`, `"development"`, `"staging"`, or `"production"`.
+   * @returns e.g., `"development"`, `"ci"`, `"production"`.
    */
   static getEnvironmentLabel(): string {
     return this.getEnvVarSafe('NODE_ENV', 'development');
