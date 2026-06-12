@@ -33,7 +33,7 @@ jobs:
           API_TOKEN:                       ${{ secrets.API_TOKEN }}
           NODE_ENV:                        ci
           GOOGLE_APPLICATION_CREDENTIALS:  /tmp/service-account.json
-        run: npx ts-node core/engine.ts
+        run: npm run start:engine
 
       - name: Upload HTML Test Report
         uses: actions/upload-artifact@v4
