@@ -1,0 +1,50 @@
+name: CoderNest QA Core — CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Write Firebase Service Account Key
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > /tmp/service-account.json
+
+      - name: Run Test Engine
+        env:
+          API_BASE_URL:                    ${{ secrets.API_BASE_URL }}
+          API_TOKEN:                       ${{ secrets.API_TOKEN }}
+          NODE_ENV:                        ci
+          GOOGLE_APPLICATION_CREDENTIALS:  /tmp/service-account.json
+        run: npx ts-node core/engine.ts
+
+      - name: Upload HTML Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-${{ github.run_number }}
+          path: reports/
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.run_number }}
+          path: reports/coverage/
