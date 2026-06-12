@@ -17,6 +17,7 @@ export interface ReportData {
   failed: number;
   severity: 'Healthy' | 'Degraded' | 'Critical';
   findings: Finding[];
+  markdownResult?: string;
 }
 
 export const Reporter = {

@@ -6,6 +6,7 @@
  */
 
 import express, { Application, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import * as fs   from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
@@ -15,6 +16,7 @@ import { runSmartScan, scanState } from '../core/TestOrchestrator';
 const app: Application = express();
 
 // ── Middleware ──────────────────────────────────────────────────────────────
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -114,6 +116,34 @@ app.post('/api/v1/smart-test', (req: Request, res: Response) => {
   void runSmartScan(url);
 
   res.status(202).json({ status: 'started', message: 'Scan initiated. Poll /api/v1/smart-status for updates.' });
+});
+
+/**
+ * POST /api/v1/audit — Synchronous dynamic audit.
+ * Body: { targetUrl: string, authToken?: string }
+ */
+import { DynamicEngine } from '../src/engine/dynamicEngine';
+
+app.post('/api/v1/audit', async (req: Request, res: Response): Promise<void> => {
+  const { targetUrl, authToken } = req.body as { targetUrl?: string; authToken?: string };
+
+  if (!targetUrl) {
+    res.status(400).json({ error: 'Request body must include a "targetUrl" field.' });
+    return;
+  }
+
+  try { new URL(targetUrl); } catch {
+    res.status(400).json({ error: 'Invalid URL provided.' });
+    return;
+  }
+
+  try {
+    const engine = new DynamicEngine(targetUrl, authToken);
+    const reportData = await engine.runScan();
+    res.json(reportData);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Dynamic audit failed.', details: error.message });
+  }
 });
 
 // ── Dashboard & Static ──────────────────────────────────────────────────────
